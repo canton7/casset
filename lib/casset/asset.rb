@@ -13,16 +13,9 @@ module Casset
 
 		def initialize(type, file, options)
 			@type, @file = type, file
-			@remote = file.include?('://')
 			# We don't yet know the path. We will after finalize() is called
 			@path = nil
 			@options = DEFAULT_OPTIONS.merge(options)
-			# If the file's remote, we already have a few settings
-			if @remote
-				# Never combine remote assets
-				@options[:combine] = false
-				# We can, however, min them... But only by using :min_file
-			end
 		end
 
 		def self.forge(type, file, options)
@@ -35,10 +28,16 @@ module Casset
 
 		# Called when we've finished mucking about with the Casset config
 		def finalize(path_prefix, dirs, namespaces, combine, min)
-			if @remote then @path = @file
-			else						@path = path_prefix + dirs[@type] + namespaces[@options[:namespace]] + @file
+			namespace = namespaces[@options[:namespace]]
+			@remote = @file.include?('://') || namespace.include?('://')
+			if @remote
+				@path = @file
+				# If it's remote, we can't combine it
+				@options[:combine] = false
+			else
+				@path = path_prefix + dirs[@type] + namespace + @file
+				@options[:combine] = combine if @options[:ombine].nil?
 			end
-			@options[:combine] = combine if @options[:combine].nil?
 			@options[:min] = min if @options[:min].nil?
 		end
 

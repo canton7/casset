@@ -3,7 +3,7 @@ require 'digest/md5'
 module Casset
 	class AssetGroup
 		DEFAULT_OPTIONS = {
-			:enable => true,
+			:enable => false,
 			:depends_on => [],
 			:inline => nil,
 			:combine => nil,
