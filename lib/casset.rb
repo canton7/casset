@@ -1,8 +1,8 @@
 # Temporary hack
 $:.unshift File.dirname(__FILE__)
 
-require 'asset'
-require 'asset_group'
+require 'casset/asset'
+require 'casset/asset_group'
 
 require 'ostruct'
 
@@ -18,6 +18,7 @@ module Casset
 					:js => 'js/',
 					:css => 'css/',
 				},
+				:cache_dir => 'cache/',
 				:max_dep_depth => 5,
 				:combine => true,
 				:min => true,
@@ -25,22 +26,35 @@ module Casset
 					:core => '',
 				},
 				:default_namespace => :core,
-				:path_prefix => '',
+				:root => '',
 			}
 		end
 
-		def config(&b)
-			@config.merge!(ConfigStruct.block_to_hash(b))
+		def config(config=nil, &b)
+			config = ConfigStruct.black_to_hasj(b) unless config
+			@config.merge!(config)
 		end
 
-		def add_assets(type, group, files=nil, options=nil)
-			# If they appeared to specify a group but no files, what they actually did
-			# was a file but no group
-			unless group.is_a?(Symbol)
-				options, files, group = files || {}, group || [], nil
+		def add_assets(type, *args)
+			# We can take inputs in several formats...
+			# - :type, [files]
+			# - :type, :group, [files]
+			# - :type, [files], {options}
+			# - :type, :group, [files], {options}
+			case args.count
+			when 1 then group, files, options = nil, args[0], {}
+			when 2
+				unless args[1].is_a?(Hash)
+					group, files, options = args[0], args[1], {}
+				else
+					group, files, options = nil, args[0], args[1]
+				end
+			when 3 then group, files, options = args[0], args[1], args[2]
+			else raise "Too many arguments given to js/css"
 			end
 
-			group ||= :page
+			# Can't call to_sym on nil
+			group = (group || :page).to_sym
 			unless @groups.include?(group)
 				@groups[group] = AssetGroup.new(group)
 			end
@@ -66,7 +80,10 @@ module Casset
 		end
 
 		# Figures out which groups should be rendered, based on the current config
-		def render
+		def render(type, options={})
+			options = {
+					:gen_tags => true
+			}.merge(options)
 			# We're good to go. Assume no more config changes, and finalize
 			@groups.values.each{ |group| group.finalize(@config) }
 
@@ -78,9 +95,11 @@ module Casset
 			# Sort out the deps
 			groups = resolve_deps(groups)
 
-			groups.each do |group|
-				group.combine(:js)
+			files = groups.inject([]) do |s, group|
+				s.push *group.generate(type)
 			end
+			files = files.map{ |file| tag(type, file) }.join("\n") if options[:gen_tags]
+			return files
 		end
 
 		# Resolves dependancies, recursively
@@ -100,6 +119,16 @@ module Casset
 				all_groups << group
 			end
 			return all_groups
+		end
+
+		def tag(type, file)
+			case type
+			when :js
+				"<script type=\"text/javascript\" src=\"#{file}\"></script>"
+			when :css
+				"<link rel=\"stylesheet\" type=\"text/css\" href=\"#{file}\" />"
+			else raise "Unknown asset type passed to tag: #{type}"
+			end
 		end
 	end
 

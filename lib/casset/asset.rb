@@ -10,12 +10,18 @@ module Casset
 		attr_reader :type
 		attr_reader :file
 		attr_reader :path
+		attr_reader :url				# Only used for non-min, non-combined assets
+		@path
+		@options
+		@remote
+		@finalized
 
 		def initialize(type, file, options)
 			@type, @file = type, file
 			# We don't yet know the path. We will after finalize() is called
 			@path = nil
 			@options = DEFAULT_OPTIONS.merge(options)
+			@finalized = false
 		end
 
 		def self.forge(type, file, options)
@@ -27,22 +33,25 @@ module Casset
 		end
 
 		# Called when we've finished mucking about with the Casset config
-		def finalize(path_prefix, dirs, namespaces, combine, min)
+		def finalize(root, dirs, namespaces, combine, min)
 			namespace = namespaces[@options[:namespace]]
 			@remote = @file.include?('://') || namespace.include?('://')
 			if @remote
-				@path = @file
+				@url = @path = @file
 				# If it's remote, we can't combine it
 				@options[:combine] = false
 			else
-				@path = path_prefix + dirs[@type] + namespace + @file
+				@url = namespace + dirs[@type] + @file
+				@path = root + @url
 				@options[:combine] = combine if @options[:ombine].nil?
 			end
 			@options[:min] = min if @options[:min].nil?
+			@finalized = true
+			raise Errno::ENOENT, "Asset #{@path} (#{File.absolute_path(@path)}) doesn't appear to exist" unless File.exists?(@path)
 		end
 
 		def render
-			"The conents of #{@file}"
+			File.open(@path){ |f| f.read }
 		end
 
 		def combine?
@@ -54,7 +63,7 @@ module Casset
 		end
 
 		def mtime
-			raise "Asset #{@path} doesn't appear to exist" unless File.exists?(@path)
+			raise "Must finalize asset before finding mtime" unless @finalized
 			raise "Can't get the mtime of remote file #{@path}" if @remote
 			File.mtime(@path)
 		end

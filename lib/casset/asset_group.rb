@@ -3,7 +3,7 @@ require 'digest/md5'
 module Casset
 	class AssetGroup
 		DEFAULT_OPTIONS = {
-			:enable => false,
+			:enable => true,
 			:depends_on => [],
 			:inline => nil,
 			:combine => nil,
@@ -11,6 +11,7 @@ module Casset
 		}
 
 		attr_reader :name
+		@cache_dir
 
 		def initialize(name, options={})
 			@name = name
@@ -80,40 +81,64 @@ module Casset
 
 		# Called when we've finished mucking about with the Casset config
 		def finalize(config)
-			path_prefix, dirs, namespaces = config[:path_prefix], config[:dirs], config[:namespaces]
+			root, dirs, namespaces = config[:root], config[:dirs], config[:namespaces]
 			combine = @options[:combine].nil? ? config[:combine] : @options[:combine]
 			min = @options[:min].nil? ? config[:min] : @options[:min]
+			@cache_dir = config[:root] + config[:cache_dir]
 			each_asset do |asset|
-				asset.finalize(path_prefix, dirs, namespaces, combine, min)
+				asset.finalize(root, dirs, namespaces, combine, min)
 			end
-		end
-
-		# Partition the assets of a given type into those that are to be combined,
-		# and those that aren't.
-		# If an asset has no preference, the settings for this asset group are used.
-		# If this is nil (no preference), the 'default' argument is used.
-		def partition_combine(type)
-			@assets[type].partition{ |asset| asset.combine? }
+			Dir.mkdir(@cache_dir) unless Dir.exist?(@cache_dir)
 		end
 
 		# Combines the files into the necessary cache files, doing writing, etc
 		# along the way
-		def combine(type)
+		def generate(type)
 			files = []
-			render_comb, render_indv = partition_combine(type)
-			p cache_file_name(render_comb, type)
+			render_comb, render_indv = @assets[type].partition{ |asset| asset.combine? }
+			#p cache_file_name(render_comb, type)
 			#render_comb.each do |asset|
 				# Combined assets always live in a cache file.
 			#end
+
+			unless render_comb.empty?
+				files << combine(type, render_comb)
+			end
+
+
+
+			render_indv.each do |asset|
+				if asset.minify?
+				else
+					# Don't minimise or combine -- just link to file
+					# TODO this won't swing with SASS, etc. We probably want to put it in
+					# a cache file anyway
+					files << asset.url
+				end
+			end
+			return files
 		end
 
-		def cache_file_name(assets, type)
+		def combine(type, assets)
+			filename = cache_file_name(type, assets)
+			# If filename exists, we don't need to generate the cache
+			return filename if File.exist?(filename)
+			unless File.exist?(filename)
+				content = assets.inject('') do |s, asset|
+					s << asset.render + "\n"
+				end
+				File.open(filename, 'w') { |f| f.write(content) }
+			end
+			return filename
+		end
+
+		def cache_file_name(type, assets)
 			# Get the last modified time of all component files
 			last_mtime = assets.map{ |asset| asset.mtime }.max
 			filename = Digest::MD5.hexdigest(assets.inject('') \
-					{ |s, asset| s << asset.path << asset.minify? ? 'min' : '' } +
-					last_mtime.to_s)+type.to_s
-			return filename
+					{ |s, asset| s << asset.path + (asset.minify? ? 'min' : '') } +
+					last_mtime.to_s) + '.' + type.to_s
+			return @cache_dir + filename
 		end
 
 	end
