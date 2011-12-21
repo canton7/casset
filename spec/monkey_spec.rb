@@ -20,9 +20,16 @@ describe Hash do
 	end
 
 	it "config_merge: shouldn't create new keys is no_new is passed" do
-		a = {:a => nil, :b => 2, :c => {:a => nil}}
+		a = {:a => nil, :c => {:a => nil}}
 		b = {:a => 3,   :b => 5, :c => {:a => 4, :c => 6}, :d => 7}
-		a.config_merge(b, :no_new => true).should == {:a => 3, :b => 2, :c => {:a => 4}}
+		a.config_merge(b, :no_new => true).should == {:a => 3, :c => {:a => 4}}
+	end
+
+	it "config_merge: shouldn't modify the Hash it is called on" do
+		a = {:a => nil, :b => {:a => nil}}
+		b = {:a => 1,   :b => {:a => 2}}
+		a.config_merge(b)
+		a.should == {:a => nil, :b => {:a => nil}}
 	end
 
 	it "config_merge!: should overwrite nil's in a with value in b recursively" do

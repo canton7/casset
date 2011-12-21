@@ -20,7 +20,7 @@ class Hash
 	end
 
 	def config_merge(hash2, opts={})
-		target = dup
+		target = Marshal.load(Marshal.dump(self))
 		target.config_merge!(hash2, opts)
 		return target
 	end
