@@ -34,8 +34,7 @@ module Casset
 
 		# Called when we've finished mucking about with the Casset config
 		def finalize(options)
-			merge_opts = Hash[[:min, :combine].map{ |k| [k, options[k]] }]
-			@options.config_merge!(merge_opts)
+			@options.config_merge!(options, :no_new => true)
 			namespace = options[:namespaces][@options[:namespace]]
 			@remote = @file.include?('://') || namespace.include?('://')
 			if @remote

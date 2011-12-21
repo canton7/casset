@@ -89,8 +89,7 @@ module Casset
 
 		# Called when we've finished mucking about with the Casset config
 		def finalize(config)
-			merge_conf = Hash[[:inline, :combine, :mine, :min_settings].map{ |k| [k, config[k]] }]
-			@options.config_merge!(merge_conf)
+			@options.config_merge!(config, :no_new => true)
 			@cache_dir = config[:root] + config[:cache_dir]
 			each_asset do |asset|
 				asset.finalize(@options.config_merge(config))
