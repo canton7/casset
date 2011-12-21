@@ -9,9 +9,6 @@ class Hash
 		hash2.each_key do |k|
 			if self[k].is_a?(Hash) && hash2[k].is_a?(Hash)
 				self[k].config_merge!(hash2[k], opts)
-			elsif hash2[k].is_a?(Hash)
-				# If hash2[k] is a hash, but hash1[k] isn't
-				self[k] = hash2[k]
 			elsif (self.include?(k) || !opts[:no_new]) && self[k] == nil || opts[:overwrite]
 				self[k] = hash2[k]
 			end
