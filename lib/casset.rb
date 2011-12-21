@@ -1,6 +1,7 @@
 # Temporary hack
 $:.unshift File.dirname(__FILE__)
 
+require 'casset/monkey'
 require 'casset/asset'
 require 'casset/asset_group'
 
@@ -22,6 +23,14 @@ module Casset
 				:max_dep_depth => 5,
 				:combine => true,
 				:min => true,
+				:min_settings => {
+					:js => {
+
+					},
+					:css => {
+
+					}
+				},
 				:namespaces => {
 					:core => '',
 				},
@@ -31,8 +40,8 @@ module Casset
 		end
 
 		def config(config=nil, &b)
-			config = ConfigStruct.black_to_hasj(b) unless config
-			@config.merge!(config)
+			config = ConfigStruct.block_to_hash(b) unless config
+			@config.config_merge!(config, :overwrite => true)
 		end
 
 		def add_assets(type, *args)
@@ -147,6 +156,5 @@ module Casset
 		def to_hash
 			@table
 		end
-end
-
+	end
 end

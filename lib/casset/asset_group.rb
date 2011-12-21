@@ -8,6 +8,14 @@ module Casset
 			:inline => nil,
 			:combine => nil,
 			:min => nil,
+			:min_settings => {
+				:js => {
+
+				},
+				:css => {
+
+				},
+			},
 		}
 
 		attr_reader :name
@@ -81,12 +89,11 @@ module Casset
 
 		# Called when we've finished mucking about with the Casset config
 		def finalize(config)
-			root, dirs, namespaces = config[:root], config[:dirs], config[:namespaces]
-			combine = @options[:combine].nil? ? config[:combine] : @options[:combine]
-			min = @options[:min].nil? ? config[:min] : @options[:min]
+			merge_conf = Hash[[:inline, :combine, :mine, :min_settings].map{ |k| [k, config[k]] }]
+			@options.config_merge!(merge_conf)
 			@cache_dir = config[:root] + config[:cache_dir]
 			each_asset do |asset|
-				asset.finalize(root, dirs, namespaces, combine, min)
+				asset.finalize(@options.config_merge(config))
 			end
 			Dir.mkdir(@cache_dir) unless Dir.exist?(@cache_dir)
 		end

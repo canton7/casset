@@ -33,19 +33,19 @@ module Casset
 		end
 
 		# Called when we've finished mucking about with the Casset config
-		def finalize(root, dirs, namespaces, combine, min)
-			namespace = namespaces[@options[:namespace]]
+		def finalize(options)
+			merge_opts = Hash[[:min, :combine].map{ |k| [k, options[k]] }]
+			@options.config_merge!(merge_opts)
+			namespace = options[:namespaces][@options[:namespace]]
 			@remote = @file.include?('://') || namespace.include?('://')
 			if @remote
 				@url = @path = @file
 				# If it's remote, we can't combine it
 				@options[:combine] = false
 			else
-				@url = namespace + dirs[@type] + @file
-				@path = root + @url
-				@options[:combine] = combine if @options[:ombine].nil?
+				@url = namespace + options[:dirs][@type] + @file
+				@path = options[:root] + @url
 			end
-			@options[:min] = min if @options[:min].nil?
 			@finalized = true
 			raise Errno::ENOENT, "Asset #{@path} (#{File.absolute_path(@path)}) doesn't appear to exist" unless File.exists?(@path)
 		end
