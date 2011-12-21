@@ -17,8 +17,21 @@ class Hash
 	end
 
 	def config_merge(hash2, opts={})
-		target = Marshal.load(Marshal.dump(self))
+		target = self.config_clone
 		target.config_merge!(hash2, opts)
+		return target
+	end
+
+	def config_clone
+		target = {}
+		self.each_key do |k|
+			if self[k].respond_to?(:config_clone)
+				target[k] = self[k].config_clone
+			else
+				# Can't test for dup, as e.g. Fixnum responds true, but throws exception
+				target[k] = self[k].dup rescue self[k]
+			end
+		end
 		return target
 	end
 end
