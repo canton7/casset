@@ -3,6 +3,7 @@ class Hash
 	# If opts[:overwtite] == false, will only overwrite if value in self is nil
 	def config_merge!(hash2, opts={})
 		opts[:overwrite] ||= false
+		opts[:no_new] ||= false
 		# Add any keys present in self but not hash2 to hash2
 		hash2 = self.merge(hash2)
 		hash2.each_key do |k|
@@ -11,7 +12,7 @@ class Hash
 			elsif hash2[k].is_a?(Hash)
 				# If hash2[k] is a hash, but hash1[k] isn't
 				self[k] = hash2[k]
-			elsif self[k] == nil || opts[:overwrite]
+			elsif (self.include?(k) || !opts[:no_new]) && self[k] == nil || opts[:overwrite]
 				self[k] = hash2[k]
 			end
 		end

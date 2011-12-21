@@ -19,6 +19,12 @@ describe Hash do
 		a.config_merge(b, :overwrite => true).should == {:a => 3, :b => 2, :c => {:a => 7, :b => 6, :c => 8}}
 	end
 
+	it "config_merge: shouldn't create new keys is no_new is passed" do
+		a = {:a => nil, :b => 2, :c => {:a => nil}}
+		b = {:a => 3,   :b => 5, :c => {:a => 4, :c => 6}, :d => 7}
+		a.config_merge(b, :no_new => true).should == {:a => 3, :b => 2, :c => {:a => 4}}
+	end
+
 	it "config_merge!: should overwrite nil's in a with value in b recursively" do
 		a = {:a => 1, :b => nil, :c => {:a => 5, :b => nil}}
 		b = {:a => 3, :b => 2,   :c => {         :b => 7} }
@@ -38,6 +44,13 @@ describe Hash do
 		b = {:a => 3,          :c => {:a => 7,          :c => 8}}
 		a.config_merge!(b, :overwrite => true)
 		a.should == {:a => 3, :b => 2, :c => {:a => 7, :b => 6, :c => 8}}
+	end
+
+	it "config_merge!: shouldn't create new keys is no_new is passed" do
+		a = {:a => nil, :b => 2, :c => {:a => nil}}
+		b = {:a => 3,   :b => 5, :c => {:a => 4, :c => 6}, :d => 7}
+		a.config_merge!(b, :no_new => true)
+		a.should == {:a => 3, :b => 2, :c => {:a => 4}}
 	end
 end
 
