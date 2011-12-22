@@ -3,7 +3,7 @@ require 'digest/md5'
 module Casset
 	class AssetGroup
 		DEFAULT_OPTIONS = {
-			:enable => true,
+			:enable => nil,
 			:depends_on => [],
 			:inline => nil,
 			:combine => nil,
@@ -24,8 +24,13 @@ module Casset
 				:js => [],
 				:css => [],
 			}
-			@options = DEFAULT_OPTIONS.merge(options)
+			@options = DEFAULT_OPTIONS.config_merge(options, :no_new => true)
+			@options[:enable] = true if @options[:enable].nil?
 			@rendered = false
+		end
+
+		def set_options(options)
+			@options.config_merge!(options, :overwrite => true, :no_new => true)
 		end
 
 		def js

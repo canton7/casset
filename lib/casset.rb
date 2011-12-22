@@ -70,10 +70,21 @@ module Casset
 
 			# Can't call to_sym on nil
 			group = (group || :page).to_sym
-			unless @groups.include?(group)
-				@groups[group] = AssetGroup.new(group)
-			end
+			@groups[group] = AssetGroup.new(group, :enable => true) unless @groups.include?(group)
 
+			add_assets_to_group(type, group, files, options)
+		end
+
+		def add_group(name, options={})
+			name = name.to_sym
+			js = options.delete(:js) || []
+			css = options.delete(:css) || []
+			@groups[name] = AssetGroup.new(name, options) unless @groups.include?(name)
+			add_assets_to_group(:js, name, js)
+			add_assets_to_group(:css, name, css)
+		end
+
+		def add_assets_to_group(type, group, files, options={})
 			# Ensure we've got an array
 			[*files].each do |file|
 				# Get the namespace from the filename.
@@ -84,6 +95,11 @@ module Casset
 				asset = Asset.new(type, file, options)
 				@groups[group] << asset
 			end
+		end
+
+		def group_options(group, options)
+			raise "Can't set options for group #{group} as it doesn't exist" unless @groups.include?(group)
+			@groups[group].set_options(options)
 		end
 
 		def js(*args)

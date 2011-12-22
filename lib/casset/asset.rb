@@ -15,7 +15,6 @@ module Casset
 		attr_reader :file
 		attr_reader :path
 		attr_reader :url				# Only used for non-min, non-combined assets
-		@path
 		@options
 		@remote
 		@finalized

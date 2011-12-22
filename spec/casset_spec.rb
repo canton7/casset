@@ -13,6 +13,7 @@ module Casset
 	end
 	class AssetGroup
 		attr_reader :assets
+		attr_reader :options
 	end
 	class Asset
 		attr_reader :options
@@ -157,6 +158,31 @@ describe Casset do
 		@casset.js 'test.js'
 		cache_file = @casset.render(:js, :gen_tags => false)[0]
 		Digest::MD5.file(cache_file).should == '4424eb9f94433a1d8d144da6b8ba769b'
+	end
+
+	it "should allow creation of groups using add_group" do
+		@casset.add_group(:test_group, :js => ['test1.js', 'test2.js'], :css => 'test.js', :enable => false)
+		@casset.groups.should include(:test_group)
+		@casset.groups[:test_group].assets[:js].length.should == 2
+		@casset.groups[:test_group].assets[:css].length.should == 1
+		@casset.groups[:test_group].options[:enable].should == false
+	end
+
+	it "should refuse to set group settings if the group doesn't exist" do
+		expect{ @casset.group_options(:testy, {}) }.to raise_error
+	end
+
+	it "should set group settings if the group does exist" do
+		@casset.add_group(:test_group, :enable => true)
+		@casset.group_options(:test_group, :enable => false)
+		@casset.groups[:test_group].options[:enable].should == false
+	end
+
+	it "should enable new groups by default" do
+		@casset.js :new_group, 'test.js'
+		@casset.groups[:new_group].options[:enable].should == true
+		@casset.add_group(:new_group2)
+		@casset.groups[:new_group].options[:enable].should == true
 	end
 end
 
