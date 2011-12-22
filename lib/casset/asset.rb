@@ -7,8 +7,8 @@ module Casset
 			:combine => nil,
 			:min => nil,
 			:min_file => nil,
-			:parsers => nil,
-			:minifiers => nil,
+			:parser => nil,
+			:minifier => nil,
 		}
 
 		attr_reader :type
@@ -27,6 +27,8 @@ module Casset
 			# We don't yet know the path. We will after finalize() is called
 			@path = nil
 			@options = DEFAULT_OPTIONS.merge(options)
+			# Strip period from extension
+			@extension = File.extname(@file)[1..-1]
 			@finalized = false
 		end
 
@@ -44,22 +46,24 @@ module Casset
 				@path = options[:root] + @url
 			end
 			@finalized = true
-			# Strip period from extension
-			@extension = File.extname(@file)[1..-1]
 			unless @remote || File.exists?(@path)
 				raise Errno::ENOENT, "Asset #{@path} (#{File.absolute_path(@path)}) doesn't appear to exist"
 			end
+			if options[:parsers][@type].include?(@extension)
+				@options[:parser] = options[:parsers][@type][@extension][0]
+			end
+			@options[:minifier] = options[:minifiers][@type]
 		end
 
 		def render
 			raise "Can't render a remote file" if @remote
 			content = File.open(@path){ |f| f.read }
 			# If there's a suitable parser, use that
-			if @options[:parsers] && @options[:parsers][@type].include?(@extension)
-				content = @options[:parsers][@type][@extension][0].parse(content)
+			if @options[:parser]
+				content = @options[:parser].parse(content)
 			end
-			if @options[:min] && @options[:minifiers] && @options[:minifiers][@type]
-				content = @options[:minifiers][@type].minify(content)
+			if @options[:min] && @options[:minifier]
+				content = @options[:minifier].minify(content)
 			end
 			return content
 		end
@@ -78,7 +82,7 @@ module Casset
 
 		def can_link?
 			# Can link directory so long as we don't minify, combine, or parse
-			!@options[:combine] && !@options[:min] && !@options[:parsers][@type].include?(@extension)
+			!@options[:combine] && !@options[:min] && !@options[:parser]
 		end
 
 		def mtime
