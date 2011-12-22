@@ -40,6 +40,8 @@ module Casset
 				:root => '',
 				# If asset is not combined, will retain old filename
 				:retain_filename => true,
+				:show_filenames_before => false,
+				:show_filenames_inside => false,
 			}
 		end
 
@@ -109,9 +111,13 @@ module Casset
 			groups = resolve_deps(groups)
 
 			# Generate all cache files, if needed, and get an array of generated filenames
-			files = groups.inject([]){ |s, group| s.push *group.generate(type) }
+			packs = groups.inject([]){ |s, group| s.push *group.generate(type) }
 			# Create tags, if required
-			files = files.map{ |file| tag(type, file) }.join("\n") if options[:gen_tags]
+			if options[:gen_tags]
+				files = packs.map{ |pack| tag(type, pack[:file], pack[:contents]) }.join("\n")
+			else
+				files = packs.map{ |pack| pack[:file] }
+			end
 			return files
 		end
 
@@ -134,14 +140,19 @@ module Casset
 			return all_groups
 		end
 
-		def tag(type, file)
+		def tag(type, file, contents=[])
+			r = ''
+			unless contents.empty?
+				r << "<!-- File contains:\n" + contents.inject(''){ |s,f| s << " - #{f}\n" } + "-->"
+			end
 			case type
 			when :js
-				"<script type=\"text/javascript\" src=\"#{file}\"></script>"
+				r << "<script type=\"text/javascript\" src=\"#{file}\"></script>"
 			when :css
-				"<link rel=\"stylesheet\" type=\"text/css\" href=\"#{file}\" />"
+				r << "<link rel=\"stylesheet\" type=\"text/css\" href=\"#{file}\" />"
 			else raise "Unknown asset type passed to tag: #{type}"
 			end
+			return r
 		end
 
 		def add_parser(type, parser)

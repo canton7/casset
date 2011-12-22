@@ -11,6 +11,8 @@ module Casset
 			:minifiers => nil,
 			:parsers => nil,
 			:retain_filename => nil,
+			:show_filenames_inside => nil,
+			:show_filenames_before => nil,
 		}
 
 		attr_reader :name
@@ -95,22 +97,30 @@ module Casset
 		# Combines the files into the necessary cache files, doing writing, etc
 		# along the way
 		def generate(type)
-			files = []
+			packs = []
 			render_comb, render_indv = @assets[type].partition{ |asset| asset.combine? }
 
 			unless render_comb.empty?
-				files << combine(type, render_comb)
+				packs << {
+					:contents => render_comb.map{ |a| a.url },
+					:file => combine(type, render_comb)
+				}
 			end
 
 			render_indv.each do |asset|
 				# If we can link directly to the asset
 				if asset.remote? || (@options[:retain_filename] && asset.can_link?)
-					files << asset.url
+					packs << {:file => asset.url}
 				else
-					files << combine(type, [asset])
+					packs << {:file => combine(type, [asset]), :contents => [asset.url]}
 				end
 			end
-			return files
+			# TODO this is hacky
+			# Strip filenames if disabled
+			unless @options[:show_filenames_before]
+				packs.each_index { |i| packs[i][:contents] = [] }
+			end
+			return packs
 		end
 
 		def combine(type, assets)
@@ -119,6 +129,7 @@ module Casset
 			return filename if File.exist?(filename)
 			unless File.exist?(filename)
 				content = assets.inject('') do |s, asset|
+					s << "/* #{asset.url} */\n" if @options[:show_filenames_inside]
 					s << asset.render + "\n"
 				end
 				File.open(filename, 'w') { |f| f.write(content) }

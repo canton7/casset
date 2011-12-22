@@ -25,7 +25,7 @@ describe Casset do
 		@casset.config(:root => 'spec/assets/', :dirs => {:js => 'js/'}, :cache_dir => 'cache/')
   end
 
-	after(:all) do
+	after(:each) do
 		# Destroy the cache dir
 		FileUtils.rm_rf('spec/assets/cache/')
 	end
@@ -144,6 +144,19 @@ describe Casset do
 		@casset.config(:combine => false, :min => false, :retain_filename => false)
 		@casset.js 'test.js'
 		@casset.render(:js, :gen_tags => false)[0].should_not == 'js/test.js'
+	end
+
+	it "should render filenames before tag when instructed to" do
+		@casset.config(:combine => true, :min => false, :show_filenames_before => true)
+		@casset.js 'test.js'
+		@casset.render(:js).start_with?('<!-- File contains:').should be_true
+	end
+
+	it "should render filenames inside cache when instructed to" do
+		@casset.config(:combine => true, :min => false, :show_filenames_inside => true)
+		@casset.js 'test.js'
+		cache_file = @casset.render(:js, :gen_tags => false)[0]
+		Digest::MD5.file(cache_file).should == '4424eb9f94433a1d8d144da6b8ba769b'
 	end
 end
 
