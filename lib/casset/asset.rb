@@ -1,10 +1,14 @@
 module Casset
 	class Asset
+		ASSET_TYPES = [:js, :css]
+
 		DEFAULT_OPTIONS = {
 			:namespace => :core,
 			:combine => nil,
 			:min => nil,
 			:min_file => nil,
+			:parsers => nil,
+			:minifiers => nil,
 		}
 
 		attr_reader :type
@@ -15,21 +19,15 @@ module Casset
 		@options
 		@remote
 		@finalized
+		@extension
 
 		def initialize(type, file, options)
+			raise "Unknown asset type #{type}" unless ASSET_TYPES.include?(type)
 			@type, @file = type, file
 			# We don't yet know the path. We will after finalize() is called
 			@path = nil
 			@options = DEFAULT_OPTIONS.merge(options)
 			@finalized = false
-		end
-
-		def self.forge(type, file, options)
-			case type
-			when :js then JsAsset.new(file, options)
-			when :css then CssAsset.new(file, options)
-			else raise "Unknown asset type #{type}"
-			end
 		end
 
 		# Called when we've finished mucking about with the Casset config
@@ -46,11 +44,22 @@ module Casset
 				@path = options[:root] + @url
 			end
 			@finalized = true
+			# Strip period from extension
+			@extension = File.extname(@file)[1..-1]
 			raise Errno::ENOENT, "Asset #{@path} (#{File.absolute_path(@path)}) doesn't appear to exist" unless File.exists?(@path)
 		end
 
 		def render
-			File.open(@path){ |f| f.read }
+			raise "Can't render a remote file" if @remote
+			content = File.open(@path){ |f| f.read }
+			# If there's a suitable parser, use that
+			if @options[:parsers] && @options[:parsers][@type].include?(@extension)
+				content = @options[:parsers][@type][@extension][0].parse(content)
+			end
+			if @options[:min] && @options[:minifiers] && @options[:minifiers][@type]
+				content = @options[:minifiers][@type].minify(content)
+			end
+			return content
 		end
 
 		def combine?
@@ -61,24 +70,16 @@ module Casset
 			@options[:min]
 		end
 
+		def can_link?
+			# Can link directory so long as we don't minify, combine, or parse
+			!@options[:combine] && !@options[:min] && !@options[:parsers][@type].include?(@extension)
+		end
+
 		def mtime
 			raise "Must finalize asset before finding mtime" unless @finalized
 			raise "Can't get the mtime of remote file #{@path}" if @remote
 			File.mtime(@path)
 		end
 
-	end
-
-
-	class CssAsset < Asset
-		def initialize(file, options)
-			super(:css, file, options)
-		end
-	end
-
-	class JsAsset < Asset
-		def initialize(file, options)
-			super(:js, file, options)
-		end
 	end
 end

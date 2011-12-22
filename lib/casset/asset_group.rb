@@ -8,14 +8,8 @@ module Casset
 			:inline => nil,
 			:combine => nil,
 			:min => nil,
-			:min_settings => {
-				:js => {
-
-				},
-				:css => {
-
-				},
-			},
+			:minifiers => nil,
+			:parsers => nil,
 		}
 
 		attr_reader :name
@@ -114,12 +108,11 @@ module Casset
 
 
 			render_indv.each do |asset|
-				if asset.minify?
-				else
-					# Don't minimise or combine -- just link to file
-					# TODO this won't swing with SASS, etc. We probably want to put it in
-					# a cache file anyway
+				# If we can link directly to the asset
+				if asset.can_link?
 					files << asset.url
+				else
+					files << combine(type, [asset])
 				end
 			end
 			return files

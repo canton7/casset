@@ -4,6 +4,8 @@ $:.unshift File.dirname(__FILE__)
 require 'casset/monkey'
 require 'casset/asset'
 require 'casset/asset_group'
+require 'casset/parser'
+require 'casset/minifier'
 
 require 'ostruct'
 
@@ -23,13 +25,13 @@ module Casset
 				:max_dep_depth => 5,
 				:combine => true,
 				:min => true,
-				:min_settings => {
-					:js => {
-
-					},
-					:css => {
-
-					}
+				:minifiers => {
+					:js => nil,
+					:css => nil,
+				},
+				:parsers => {
+					:js => {},
+					:css => {},
 				},
 				:namespaces => {
 					:core => '',
@@ -75,7 +77,7 @@ module Casset
 				# Reverse ensures that, if no namespace present, nil is set
 				file, namespace = file.split('::', 2).reverse
 				options[:namespace] = namespace || @config[:default_namespace]
-				asset = Asset.forge(type, file, options)
+				asset = Asset.new(type, file, options)
 				@groups[group] << asset
 			end
 		end
@@ -138,6 +140,20 @@ module Casset
 				"<link rel=\"stylesheet\" type=\"text/css\" href=\"#{file}\" />"
 			else raise "Unknown asset type passed to tag: #{type}"
 			end
+		end
+
+		def add_parser(type, parser)
+			raise "Unknown parser type #{type}" unless @config[:parsers].include?(type)
+			parser.extensions.each do |ext|
+				@config[:parsers][type][ext] = [] unless @config[:parsers].include?(ext)
+				# Add onto beginning -- higher priority
+				@config[:parsers][type][ext].unshift parser
+			end
+		end
+
+		def set_minifier(type, minifier)
+			raise "Unknown minifier type #{type}" unless @config[:minifiers].include?(type)
+			@config[:minifiers][type] = minifier
 		end
 	end
 

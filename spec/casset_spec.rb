@@ -117,5 +117,21 @@ describe Casset do
 		# Set back to what they were. Might confuse stuff otherwise
 		File.utime(atime, mtime, file)
 	end
+
+	it "should accept and use new parsers" do
+		@casset.config(:combine => true, :min => false)
+		@casset.add_parser(:js, Parser.new('js') { |file| "parsed content: #{file}" })
+		@casset.js 'test.js'
+		cache_file = @casset.render(:js, :gen_tags => false)[0]
+		Digest::MD5.file(cache_file).should == '9e0eb26aacc7892b448c8c75922fc5cd'
+	end
+
+	it "should accept and use new minifiers" do
+		@casset.config(:combine => true, :min => true)
+		@casset.set_minifier(:js, Minifier.new { |file| "compressed content: #{file}" })
+		@casset.js 'test.js'
+		cache_file = @casset.render(:js, :gen_tags => false)[0]
+		Digest::MD5.file(cache_file).should == 'ff3837b6f35ac834a484d690df4bca13'
+	end
 end
 
