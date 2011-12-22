@@ -106,9 +106,9 @@ module Casset
 			# Sort out the deps
 			groups = resolve_deps(groups)
 
-			files = groups.inject([]) do |s, group|
-				s.push *group.generate(type)
-			end
+			# Generate all cache files, if needed, and get an array of generated filenames
+			files = groups.inject([]){ |s, group| s.push *group.generate(type) }
+			# Create tags, if required
 			files = files.map{ |file| tag(type, file) }.join("\n") if options[:gen_tags]
 			return files
 		end
