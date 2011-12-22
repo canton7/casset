@@ -109,7 +109,7 @@ module Casset
 
 			render_indv.each do |asset|
 				# If we can link directly to the asset
-				if asset.can_link?
+				if asset.can_link? || asset.remote?
 					files << asset.url
 				else
 					files << combine(type, [asset])

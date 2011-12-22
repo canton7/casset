@@ -133,5 +133,11 @@ describe Casset do
 		cache_file = @casset.render(:js, :gen_tags => false)[0]
 		Digest::MD5.file(cache_file).should == 'ff3837b6f35ac834a484d690df4bca13'
 	end
+
+	it "should handle remote URLS correctly" do
+		@casset.config(:combine => true, :min => true)
+		@casset.js 'http://test_asset'
+		@casset.render(:js, :gen_tags => false)[0].should == 'http://test_asset'
+	end
 end
 

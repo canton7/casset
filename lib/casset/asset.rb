@@ -46,7 +46,9 @@ module Casset
 			@finalized = true
 			# Strip period from extension
 			@extension = File.extname(@file)[1..-1]
-			raise Errno::ENOENT, "Asset #{@path} (#{File.absolute_path(@path)}) doesn't appear to exist" unless File.exists?(@path)
+			unless @remote || File.exists?(@path)
+				raise Errno::ENOENT, "Asset #{@path} (#{File.absolute_path(@path)}) doesn't appear to exist"
+			end
 		end
 
 		def render
@@ -68,6 +70,10 @@ module Casset
 
 		def minify?
 			@options[:min]
+		end
+
+		def remote?
+			@remote
 		end
 
 		def can_link?
