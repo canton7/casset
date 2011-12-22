@@ -9,7 +9,7 @@ class Hash
 		hash2.each_key do |k|
 			if self[k].is_a?(Hash) && hash2[k].is_a?(Hash)
 				self[k].config_merge!(hash2[k], opts)
-			elsif (self.include?(k) || !opts[:no_new]) && self[k] == nil || opts[:overwrite]
+			elsif (self.include?(k) || !opts[:no_new]) && (self[k] == nil || opts[:overwrite])
 				self[k] = hash2[k]
 			end
 		end

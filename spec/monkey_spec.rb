@@ -50,5 +50,11 @@ describe Hash do
 		b = {:a => Proc.new { 'abc' }}
 		a.config_merge(b)[:a].call.should == 'abc'
 	end
+
+	it "should have no_new and overwrite properly" do
+		a = {:a => nil, :b => 3, :c => {:a => nil, :b => 2, :d => 5}, :e => 2}
+		b = {:a => 4,   :b => 5, :c => {:a => 6,   :b => 7, :c => 8}, :d => 9}
+		a.config_merge(b, :no_new => true, :overwrite => true).should == {:a => 4, :b => 5, :c => {:a => 6, :b => 7, :d => 5}, :e => 2}
+	end
 end
 
