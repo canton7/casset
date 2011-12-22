@@ -56,5 +56,17 @@ describe Hash do
 		b = {:a => 4,   :b => 5, :c => {:a => 6,   :b => 7, :c => 8}, :d => 9}
 		a.config_merge(b, :no_new => true, :overwrite => true).should == {:a => 4, :b => 5, :c => {:a => 6, :b => 7, :d => 5}, :e => 2}
 	end
+
+	it "should merge arrays correctly" do
+		a = {:a => nil, :b => [], :c => [:a, :b]}
+		b = {:a => 4, :b => [:a, :b, :c], :c => [:c]}
+		a.config_merge(b).should == {:a => 4, :b => [:a, :b, :c], :c => [:a, :b, :c]}
+	end
+
+	it "should merge arrays correctly with overwrite" do
+		a = {:a => nil, :b => [:a]}
+		b = {:a => 4, :b => [:b, :c]}
+		a.config_merge(b, :overwrite => true).should == {:a => 4, :b => [:b, :c]}
+	end
 end
 
