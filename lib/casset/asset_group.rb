@@ -10,6 +10,7 @@ module Casset
 			:min => nil,
 			:minifiers => nil,
 			:parsers => nil,
+			:retain_filename => nil,
 		}
 
 		attr_reader :name
@@ -96,20 +97,14 @@ module Casset
 		def generate(type)
 			files = []
 			render_comb, render_indv = @assets[type].partition{ |asset| asset.combine? }
-			#p cache_file_name(render_comb, type)
-			#render_comb.each do |asset|
-				# Combined assets always live in a cache file.
-			#end
 
 			unless render_comb.empty?
 				files << combine(type, render_comb)
 			end
 
-
-
 			render_indv.each do |asset|
 				# If we can link directly to the asset
-				if asset.can_link? || asset.remote?
+				if asset.remote? || (@options[:retain_filename] && asset.can_link?)
 					files << asset.url
 				else
 					files << combine(type, [asset])

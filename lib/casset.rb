@@ -38,6 +38,8 @@ module Casset
 				},
 				:default_namespace => :core,
 				:root => '',
+				# If asset is not combined, will retain old filename
+				:retain_filename => true,
 			}
 		end
 

@@ -139,5 +139,11 @@ describe Casset do
 		@casset.js 'http://test_asset'
 		@casset.render(:js, :gen_tags => false)[0].should == 'http://test_asset'
 	end
+
+	it "shouldn't link straight to file if instructed not to" do
+		@casset.config(:combine => false, :min => false, :retain_filename => false)
+		@casset.js 'test.js'
+		@casset.render(:js, :gen_tags => false)[0].should_not == 'js/test.js'
+	end
 end
 
