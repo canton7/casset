@@ -2,6 +2,7 @@
 # and open the template in the editor.
 
 require 'digest/md5'
+require 'pp'
 
 require 'casset'
 include Casset
@@ -183,6 +184,17 @@ describe Casset do
 		@casset.groups[:new_group].options[:enable].should == true
 		@casset.add_group(:new_group2)
 		@casset.groups[:new_group].options[:enable].should == true
+	end
+
+	it "sould resolve deps correctly" do
+		@casset.config(:combine => false, :min => false)
+		@casset.add_group(:group2, :js => 'test2.js', :depends_on => [:group1])
+		@casset.js :group1, 'test.js'
+		# Must render these in the right order
+		@casset.render(:js, :gen_tags => false).should == ['js/test.js', 'js/test2.js']
+		# If we disable group1, if should be rendered anyway
+		@casset.group_options(:group1, :enable => false)
+		@casset.render(:js, :gen_tags => false).should == ['js/test.js', 'js/test2.js']
 	end
 end
 

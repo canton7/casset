@@ -140,18 +140,17 @@ module Casset
 		# Resolves dependancies, recursively
 		# Creates a list of groups to be rendered, in order
 		def resolve_deps(groups, depth=0)
-			# Ensure we're working with an array
-			groups = [*groups]
 			raise "Recursion depth too great" if depth > @config[:max_dep_depth]
-			all_groups = groups.inject([]) do |all_groups, group|
-				dep_names = resolve_deps(group.depends_on, depth+1)
-				# Turn this list of group names into a list of groups
-				deps = dep_names.map{ |name| @groups[name] }
-				# Don't add a group twice
-				# This *should* work, as we're testing against the same instances...
-				deps.select!{ |group| !all_groups.include(group) }
-				all_groups.push *deps
-				all_groups << group
+			all_groups = []
+			[*groups].each do |group|
+				unless group.depends_on.empty?
+					dep_groups = group.depends_on.map{ |name| @groups[name] }
+					deps = resolve_deps(dep_groups, depth+1)
+					# Don't add a group twice
+					deps.select!{ |group| !all_groups.include?(group) }
+					all_groups.push *deps
+				end
+				all_groups << group unless all_groups.include?(group)
 			end
 			return all_groups
 		end

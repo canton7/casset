@@ -24,13 +24,17 @@ module Casset
 				:js => [],
 				:css => [],
 			}
+			# Ensure that this is an array
+			options[:depends_on] = [*options[:depends_on]]
 			@options = DEFAULT_OPTIONS.config_merge(options, :no_new => true)
+			@options[:depends_on].uniq!
 			@options[:enable] = true if @options[:enable].nil?
 			@rendered = false
 		end
 
 		def set_options(options)
 			@options.config_merge!(options, :overwrite => true, :no_new => true)
+			@options[:depends_on].uniq!
 		end
 
 		def js
