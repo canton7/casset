@@ -196,5 +196,11 @@ describe Casset do
 		@casset.group_options(:group1, :enable => false)
 		@casset.render(:js, :gen_tags => false).should == ['js/test.js', 'js/test2.js']
 	end
+
+	it "should handle tag attributes correctly" do
+		@casset.config(:combine => false, :min => false)
+		@casset.add_group(:group, :js => 'test.js', :attr=>{:js => {'key' => 'value'}})
+		@casset.render(:js).should =~ /<script.*key="value".*><\/script>/
+	end
 end
 

@@ -13,10 +13,16 @@ module Casset
 			:retain_filename => nil,
 			:show_filenames_inside => nil,
 			:show_filenames_before => nil,
+			:attr => {
+				:js => nil,
+				:css => nil,
+			},
+			# Needed for assetpacks
+			:root => nil,
+			:cache_dir => nil,
 		}
 
 		attr_reader :name
-		@cache_dir
 
 		def initialize(name, options={})
 			@name = name
@@ -96,11 +102,9 @@ module Casset
 		# Called when we've finished mucking about with the Casset config
 		def finalize(config)
 			@options.config_merge!(config, :no_new => true)
-			@cache_dir = config[:root] + config[:cache_dir]
 			each_asset do |asset|
 				asset.finalize(@options.config_merge(config))
 			end
-			Dir.mkdir(@cache_dir) unless Dir.exist?(@cache_dir)
 		end
 
 		# Combines the files into the necessary cache files, doing writing, etc
@@ -110,50 +114,13 @@ module Casset
 			render_comb, render_indv = @assets[type].partition{ |asset| asset.combine? }
 
 			unless render_comb.empty?
-				packs << {
-					:contents => render_comb.map{ |a| a.url },
-					:file => combine(type, render_comb)
-				}
+				packs << AssetPack.new(type, render_comb, @options)
 			end
 
 			render_indv.each do |asset|
-				# If we can link directly to the asset
-				if asset.remote? || (@options[:retain_filename] && asset.can_link?)
-					packs << {:file => asset.url}
-				else
-					packs << {:file => combine(type, [asset]), :contents => [asset.url]}
-				end
-			end
-			# TODO this is hacky
-			# Strip filenames if disabled
-			unless @options[:show_filenames_before]
-				packs.each_index { |i| packs[i][:contents] = [] }
+				packs << AssetPack.new(type, asset, @options)
 			end
 			return packs
 		end
-
-		def combine(type, assets)
-			filename = cache_file_name(type, assets)
-			# If filename exists, we don't need to generate the cache
-			return filename if File.exist?(filename)
-			unless File.exist?(filename)
-				content = assets.inject('') do |s, asset|
-					s << "/* #{asset.url} */\n" if @options[:show_filenames_inside]
-					s << asset.render + "\n"
-				end
-				File.open(filename, 'w') { |f| f.write(content) }
-			end
-			return filename
-		end
-
-		def cache_file_name(type, assets)
-			# Get the last modified time of all component files
-			last_mtime = assets.map{ |asset| asset.mtime }.max
-			filename = Digest::MD5.hexdigest(assets.inject('') \
-					{ |s, asset| s << asset.path + (asset.minify? ? 'min' : '') } +
-					last_mtime.to_s) + '.' + type.to_s
-			return @cache_dir + filename
-		end
-
 	end
 end

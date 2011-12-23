@@ -4,6 +4,7 @@ $:.unshift File.dirname(__FILE__)
 require 'casset/monkey'
 require 'casset/asset'
 require 'casset/asset_group'
+require 'casset/asset_pack'
 require 'casset/parser'
 require 'casset/minifier'
 
@@ -11,6 +12,8 @@ require 'ostruct'
 
 module Casset
 	class Casset
+		@groups
+		@options
 
 		def initialize()
 			@groups = {}
@@ -42,6 +45,10 @@ module Casset
 				:retain_filename => true,
 				:show_filenames_before => false,
 				:show_filenames_inside => false,
+				:attr => {
+					:js => nil,
+					:css => nil
+				}
 			}
 		end
 
@@ -126,14 +133,11 @@ module Casset
 			# Sort out the deps
 			groups = resolve_deps(groups)
 
-			# Generate all cache files, if needed, and get an array of generated filenames
+			# Generate all cache files, if needed, and get an array of generated packs
 			packs = groups.inject([]){ |s, group| s.push *group.generate(type) }
-			# Create tags, if required
-			if options[:gen_tags]
-				files = packs.map{ |pack| tag(type, pack[:file], pack[:contents]) }.join("\n")
-			else
-				files = packs.map{ |pack| pack[:file] }
-			end
+			files = packs.map{ |pack| pack.render(options[:gen_tags]) }
+			# If returning tags, make them a string from an array
+			files = files.join("\n") if options[:gen_tags]
 			return files
 		end
 
@@ -153,21 +157,6 @@ module Casset
 				all_groups << group unless all_groups.include?(group)
 			end
 			return all_groups
-		end
-
-		def tag(type, file, contents=[])
-			r = ''
-			unless contents.empty?
-				r << "<!-- File contains:\n" + contents.inject(''){ |s,f| s << " - #{f}\n" } + "-->"
-			end
-			case type
-			when :js
-				r << "<script type=\"text/javascript\" src=\"#{file}\"></script>"
-			when :css
-				r << "<link rel=\"stylesheet\" type=\"text/css\" href=\"#{file}\" />"
-			else raise "Unknown asset type passed to tag: #{type}"
-			end
-			return r
 		end
 
 		def add_parser(type, parser)

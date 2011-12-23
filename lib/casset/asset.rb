@@ -9,6 +9,7 @@ module Casset
 			:min_file => nil,
 			:parser => nil,
 			:minifier => nil,
+			:retain_filename => nil,
 		}
 
 		attr_reader :type
@@ -79,9 +80,10 @@ module Casset
 			@remote
 		end
 
-		def can_link?
+		def must_link_to?
 			# Can link directory so long as we don't minify, combine, or parse
-			!@options[:combine] && !@options[:min] && !@options[:parser]
+			# We must always link to remote files
+			@remote || (!@options[:combine] && !@options[:min] && !@options[:parser] && @options[:retain_filename])
 		end
 
 		def mtime
