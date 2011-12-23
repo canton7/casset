@@ -69,7 +69,8 @@ module Casset
 		end
 
 		def combine?
-			@options[:combine]
+			# Safety check on @remote, although if @remote = true, combine should be false
+			@options[:combine] && !@remote
 		end
 
 		def minify?
