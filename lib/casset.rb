@@ -12,49 +12,49 @@ require 'ostruct'
 
 module Casset
 	class Casset
+		DEFAULT_OPTIONS = {
+			:dirs => {
+				:js => 'js/',
+				:css => 'css/',
+			},
+			:cache_dir => 'cache/',
+			:max_dep_depth => 5,
+			:combine => true,
+			:min => true,
+			:minifiers => {
+				:js => nil,
+				:css => nil,
+			},
+			:parsers => {
+				:js => {},
+				:css => {},
+			},
+			:namespaces => {
+				:core => '',
+			},
+			:default_namespace => :core,
+			:root => '',
+			# If asset is not combined, will retain old filename
+			:retain_filename => true,
+			:show_filenames_before => false,
+			:show_filenames_inside => false,
+			:attr => {
+				:js => nil,
+				:css => nil
+			}
+		}
+
 		@groups
 		@options
 
 		def initialize()
 			@groups = {}
-
-			# Default config
-			@config = {
-				:dirs => {
-					:js => 'js/',
-					:css => 'css/',
-				},
-				:cache_dir => 'cache/',
-				:max_dep_depth => 5,
-				:combine => true,
-				:min => true,
-				:minifiers => {
-					:js => nil,
-					:css => nil,
-				},
-				:parsers => {
-					:js => {},
-					:css => {},
-				},
-				:namespaces => {
-					:core => '',
-				},
-				:default_namespace => :core,
-				:root => '',
-				# If asset is not combined, will retain old filename
-				:retain_filename => true,
-				:show_filenames_before => false,
-				:show_filenames_inside => false,
-				:attr => {
-					:js => nil,
-					:css => nil
-				}
-			}
+			@options = DEFAULT_OPTIONS.config_clone
 		end
 
 		def config(config=nil, &b)
 			config = ConfigStruct.block_to_hash(b) unless config
-			@config.config_merge!(config, :overwrite => true)
+			@options.config_merge!(config, :overwrite => true)
 		end
 
 		def add_assets(type, *args)
@@ -98,7 +98,7 @@ module Casset
 				# Don't attempt to resolve it, though. We're too lazy
 				# Reverse ensures that, if no namespace present, nil is set
 				file, namespace = file.split('::', 2).reverse
-				options[:namespace] = namespace || @config[:default_namespace]
+				options[:namespace] = namespace || @options[:default_namespace]
 				asset = Asset.new(type, file, options)
 				@groups[group] << asset
 			end
@@ -123,7 +123,7 @@ module Casset
 					:gen_tags => true
 			}.merge(options)
 			# We're good to go. Assume no more config changes, and finalize
-			@groups.values.each{ |group| group.finalize(@config) }
+			@groups.values.each{ |group| group.finalize(@options) }
 
 			# Filter down the list of groups into those that are actually going to be rendered
 			groups = @groups.values.select do |group|
@@ -144,7 +144,7 @@ module Casset
 		# Resolves dependancies, recursively
 		# Creates a list of groups to be rendered, in order
 		def resolve_deps(groups, depth=0)
-			raise "Recursion depth too great" if depth > @config[:max_dep_depth]
+			raise "Recursion depth too great" if depth > @options[:max_dep_depth]
 			all_groups = []
 			[*groups].each do |group|
 				unless group.depends_on.empty?
@@ -160,17 +160,17 @@ module Casset
 		end
 
 		def add_parser(type, parser)
-			raise "Unknown parser type #{type}" unless @config[:parsers].include?(type)
+			raise "Unknown parser type #{type}" unless @options[:parsers].include?(type)
 			parser.extensions.each do |ext|
-				@config[:parsers][type][ext] = [] unless @config[:parsers].include?(ext)
+				@options[:parsers][type][ext] = [] unless @options[:parsers].include?(ext)
 				# Add onto beginning -- higher priority
-				@config[:parsers][type][ext].unshift parser
+				@options[:parsers][type][ext].unshift parser
 			end
 		end
 
 		def set_minifier(type, minifier)
-			raise "Unknown minifier type #{type}" unless @config[:minifiers].include?(type)
-			@config[:minifiers][type] = minifier
+			raise "Unknown minifier type #{type}" unless @options[:minifiers].include?(type)
+			@options[:minifiers][type] = minifier
 		end
 	end
 

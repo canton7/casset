@@ -23,6 +23,9 @@ module Casset
 		}
 
 		attr_reader :name
+		@options
+		@assets
+		@rendered
 
 		def initialize(name, options={})
 			@name = name
