@@ -7,6 +7,7 @@ require 'casset/asset_group'
 require 'casset/asset_pack'
 require 'casset/parser'
 require 'casset/minifier'
+require 'casset/image'
 
 require 'ostruct'
 
@@ -16,6 +17,7 @@ module Casset
 			:dirs => {
 				:js => 'js/',
 				:css => 'css/',
+				:img => 'img/',
 			},
 			:cache_dir => 'cache/',
 			:max_dep_depth => 5,
@@ -195,6 +197,13 @@ module Casset
 			Dir.glob(glob).select{ |f| File.file?(f) }.each do |file|
 				File.delete(file) unless options[:before] && File.mtime(file) > options[:before]
 			end
+		end
+
+		def image(path, alt, attr={})
+			path, namespace = path.split('::', 2).reverse
+			attr[:namespace] = (namespace || @options[:default_namespace]).to_sym
+			img = Image.new(path, alt, attr)
+			img.tag(@options)
 		end
 	end
 

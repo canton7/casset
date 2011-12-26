@@ -228,5 +228,15 @@ describe Casset do
 		@casset.js 'test.js'
 		@casset.render(:js, :gen_tags => false)[0].should == 'http://mine.tld/test.js'
 	end
+
+	it "should handle image links correctly" do
+		@casset.config(:url_root => 'public/')
+		@casset.image('testy.png', 'This is an image').should == '<img alt="This is an image" src="public/img/testy.png" />'
+		# Should respect remote images
+		@casset.image('http://testy.png', 'This is a remote image').should == '<img alt="This is a remote image" src="http://testy.png" />'
+		# Should respect namespaces
+		@casset.add_namespace(:mine, 'http://mine.tld/')
+		@casset.image('mine::testy.png', 'This is a remote image').should == '<img alt="This is a remote image" src="http://mine.tld/testy.png" />'
+	end
 end
 
