@@ -44,15 +44,13 @@ module Casset
 			else
 				@url = namespace + options[:dirs][@type] + @file
 				@path = options[:root] + @url
-			end
-			@finalized = true
-			unless @remote || File.exists?(@path)
-				raise Errno::ENOENT, "Asset #{@path} (#{File.absolute_path(@path)}) doesn't appear to exist"
+				raise Errno::ENOENT, "Asset #{@path} (#{File.absolute_path(@path)}) doesn't exist" unless File.exists?(@path)
 			end
 			if options[:parsers][@type].include?(@extension)
 				@options[:parser] = options[:parsers][@type][@extension][0]
 			end
 			@options[:minifier] = options[:minifiers][@type]
+			@finalized = true
 		end
 
 		def render
@@ -92,6 +90,5 @@ module Casset
 			raise "Can't get the mtime of remote file #{@path}" if @remote
 			File.mtime(@path)
 		end
-
 	end
 end
