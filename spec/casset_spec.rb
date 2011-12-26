@@ -89,7 +89,7 @@ describe Casset do
 
 	it "should resolve namespaces correctly" do
 		@casset.js 'namespace::dummy.js'
-		@casset.groups[:page].assets[:js][0].options[:namespace].should == 'namespace'
+		@casset.groups[:page].assets[:js][0].options[:namespace].should == :namespace
 	end
 
 	it "should complain if asked to render a nonexistent asset" do
@@ -214,6 +214,19 @@ describe Casset do
 		# Should delete it if we ask for all js files since now
 		@casset.clear_cache(:js, :before => Time.now)
 		File.exist?(cache_file).should == false
+	end
+
+	it "should corretly add and use new namespaces" do
+		@casset.add_namespace(:mine, 'http://mine.tld/')
+		@casset.js 'mine::test.js'
+		@casset.render(:js, :gen_tags => false)[0].should == 'http://mine.tld/test.js'
+	end
+
+	it "should correctly change the default namespace" do
+		@casset.add_namespace(:mine, 'http://mine.tld/')
+		@casset.set_default_namespace(:mine)
+		@casset.js 'test.js'
+		@casset.render(:js, :gen_tags => false)[0].should == 'http://mine.tld/test.js'
 	end
 end
 

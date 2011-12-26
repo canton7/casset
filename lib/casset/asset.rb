@@ -38,7 +38,8 @@ module Casset
 			namespace = options[:namespaces][@options[:namespace]]
 			@remote = @file.include?('://') || namespace.include?('://')
 			if @remote
-				@url = @path = @file
+				# Add on the namespace if the file doesn't have :// in it
+				@url = @path = (@file.include?('://') ? '' : namespace) + @file
 				# If it's remote, we can't combine it
 				@options[:combine] = false
 			else

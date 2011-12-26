@@ -101,7 +101,7 @@ module Casset
 				# Don't attempt to resolve it, though. We're too lazy
 				# Reverse ensures that, if no namespace present, nil is set
 				file, namespace = file.split('::', 2).reverse
-				options[:namespace] = namespace || @options[:default_namespace]
+				options[:namespace] = (namespace || @options[:default_namespace]).to_sym
 				asset = Asset.new(type, file, options)
 				@groups[group] << asset
 			end
@@ -110,6 +110,16 @@ module Casset
 		def group_options(group, options)
 			raise "Can't set options for group #{group} as it doesn't exist" unless @groups.include?(group)
 			@groups[group].set_options(options)
+		end
+
+		def add_namespace(key, path)
+			@options[:namespaces][key.to_sym] = path
+		end
+		alias_method :set_namespace, :add_namespace
+
+		def set_default_namespace(key=:core)
+			raise "Can's set default namespace to #{key} as no such namespace exists" unless @options[:namespaces].include?(key)
+			@options[:default_namespace] = key.to_sym
 		end
 
 		def js(*args)
