@@ -33,7 +33,10 @@ module Casset
 				:core => '',
 			},
 			:default_namespace => :core,
+			# The file root -- where the namespaces are relative to
 			:root => '',
+			# The URL root -- where the namespaces are relative to, as URLs
+			:url_root => '',
 			# If asset is not combined, will retain old filename
 			:retain_filename => true,
 			:show_filenames_before => false,

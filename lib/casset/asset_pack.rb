@@ -4,6 +4,7 @@ module Casset
 			:show_filenames_inside => nil,
 			:show_filenames_before => nil,
 			:root => nil,
+			:url_root => nil,
 			:cache_dir => nil,
 			:attr => {
 				:js => nil,
@@ -23,26 +24,26 @@ module Casset
 		def combine
 			cache_dir = @options[:root] + @options[:cache_dir]
 			Dir.mkdir(cache_dir) unless Dir.exist?(cache_dir)
-			filename = cache_file_name(cache_dir)
+			cache_file_name = cache_file_name()
+			filename = cache_dir + cache_file_name
+			file_url = @options[:url_root] + @options[:cache_dir] + cache_file_name
 			# If filename exists, we don't need to generate the cache
-			return if File.exist?(filename)
-			unless File.exist?(filename)
-				content = @assets.inject('') do |s, asset|
-					s << "/* #{asset.url} */\n" if @options[:show_filenames_inside]
-					s << asset.render + "\n"
-				end
-				File.open(filename, 'w') { |f| f.write(content) }
+			return file_url if File.exist?(filename)
+			content = @assets.inject('') do |s, asset|
+				s << "/* #{asset.url} */\n" if @options[:show_filenames_inside]
+				s << asset.render + "\n"
 			end
-			return filename
+			File.open(filename, 'w') { |f| f.write(content) }
+			return file_url
 		end
 
-		def cache_file_name(cache_dir)
+		def cache_file_name
 			# Get the last modified time of all component files
 			last_mtime = @assets.map{ |asset| asset.mtime }.max
 			filename = Digest::MD5.hexdigest(@assets.inject('') \
 					{ |s, asset| s << asset.path + (asset.minify? ? 'min' : '') } +
 					last_mtime.to_s) + '.' + @type.to_s
-			return cache_dir + filename
+			return filename
 		end
 
 		def tag(filename)

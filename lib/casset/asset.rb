@@ -42,8 +42,8 @@ module Casset
 				# If it's remote, we can't combine it
 				@options[:combine] = false
 			else
-				@url = namespace + options[:dirs][@type] + @file
-				@path = options[:root] + @url
+				@url = "#{options[:url_root]}#{namespace}#{options[:dirs][@type]}#{@file}"
+				@path = "#{options[:root]}#{namespace}#{options[:dirs][@type]}#{@file}"
 				raise Errno::ENOENT, "Asset #{@path} (#{File.absolute_path(@path)}) doesn't exist" unless File.exists?(@path)
 			end
 			if options[:parsers][@type].include?(@extension)

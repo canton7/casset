@@ -19,6 +19,7 @@ module Casset
 			},
 			# Needed for assetpacks
 			:root => nil,
+			:url_root => nil,
 			:cache_dir => nil,
 		}
 

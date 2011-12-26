@@ -1,6 +1,3 @@
-# To change this template, choose Tools | Templates
-# and open the template in the editor.
-
 require 'pp'
 
 require 'casset'
@@ -25,7 +22,7 @@ assets_dir = 'spec/assets/'
 describe Casset do
   before(:each) do
     @casset = Casset::Casset.new
-		@casset.config(:root => assets_dir, :dirs => {:js => 'js/'}, :cache_dir => 'cache/')
+		@casset.config(:root => assets_dir, :url_root => 'public/', :dirs => {:js => 'js/'}, :url_root => assets_dir)
   end
 
 	after(:each) do
@@ -101,9 +98,9 @@ describe Casset do
 	end
 
 	it "should return the correct link to a file if not minifying or combining" do
-		@casset.config(:combine => false, :min => false)
+		@casset.config(:combine => false, :min => false, :url_root => 'public/')
 		@casset.js 'test.js'
-		@casset.render(:js).should == '<script type="text/javascript" src="js/test.js"></script>'
+		@casset.render(:js).should == '<script type="text/javascript" src="public/js/test.js"></script>'
 	end
 
 	it "should return a valid file if combining but not minifying" do
@@ -189,14 +186,14 @@ describe Casset do
 	end
 
 	it "sould resolve deps correctly" do
-		@casset.config(:combine => false, :min => false)
+		@casset.config(:combine => false, :min => false, :url_root => 'public/')
 		@casset.add_group(:group2, :js => 'test2.js', :depends_on => [:group1])
 		@casset.js :group1, 'test.js'
 		# Must render these in the right order
-		@casset.render(:js, :gen_tags => false).should == ['js/test.js', 'js/test2.js']
+		@casset.render(:js, :gen_tags => false).should == ['public/js/test.js', 'public/js/test2.js']
 		# If we disable group1, if should be rendered anyway
 		@casset.group_options(:group1, :enable => false)
-		@casset.render(:js, :gen_tags => false).should == ['js/test.js', 'js/test2.js']
+		@casset.render(:js, :gen_tags => false).should == ['public/js/test.js', 'public/js/test2.js']
 	end
 
 	it "should handle tag attributes correctly" do
