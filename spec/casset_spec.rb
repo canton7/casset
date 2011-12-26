@@ -1,7 +1,6 @@
 # To change this template, choose Tools | Templates
 # and open the template in the editor.
 
-require 'digest/md5'
 require 'pp'
 
 require 'casset'
@@ -21,15 +20,17 @@ module Casset
 	end
 end
 
+assets_dir = 'spec/assets/'
+
 describe Casset do
   before(:each) do
     @casset = Casset::Casset.new
-		@casset.config(:root => 'spec/assets/', :dirs => {:js => 'js/'}, :cache_dir => 'cache/')
+		@casset.config(:root => assets_dir, :dirs => {:js => 'js/'}, :cache_dir => 'cache/')
   end
 
 	after(:each) do
 		# Destroy the cache dir
-		FileUtils.rm_rf('spec/assets/cache/')
+		FileUtils.rm_rf("#{assets_dir}cache/")
 	end
 
   it "should add JS files using 1-arg syntax" do
@@ -109,15 +110,16 @@ describe Casset do
 		@casset.config(:combine => true, :min => false)
 		@casset.js ['test.js', 'test2.js']
 		# Set the mtime of the file to a known, test state
-		file = 'spec/assets/js/test.js'
-		atime, mtime, new_mtime = File.atime(file), File.mtime(file), Time.new(2011, 12, 21, 17, 40, 51)
-		File.utime(new_mtime, new_mtime, file)
+		files = ["#{assets_dir}js/test.js", "#{assets_dir}js/test2.js"]
+		times = files.inject([]){ |s, f| s << {:file => f, :atime => File.atime(f), :mtime => File.mtime(f)} }	
+		new_mtime = Time.new(2011, 12, 21, 17, 40, 51)
+		files.each{ |f| File.utime(new_mtime, new_mtime, f) }
 		cache_file = @casset.render(:js, :gen_tags => false)[0]
-		cache_file.should == 'spec/assets/cache/1a7ab68915f6faf6951c042bfff33e46.js'
+		cache_file.should == "#{assets_dir}cache/9c85ee0a70fcf72e8b4daf986c22a3fe.js"
 		# Check the digest of the file contents
-		Digest::MD5.file(cache_file).should == '27715488f36dec7aa0c58354d0d78aa5'
+		FileUtils.compare_file(cache_file, "#{assets_dir}results/combine_no_min.js").should == true
 		# Set back to what they were. Might confuse stuff otherwise
-		File.utime(atime, mtime, file)
+		times.each{ |t| File.utime(t[:atime], t[:mtime], t[:file]) }
 	end
 
 	it "should accept and use new parsers" do
@@ -125,7 +127,7 @@ describe Casset do
 		@casset.add_parser(:js, Parser.new('js') { |file| "parsed content: #{file}" })
 		@casset.js 'test.js'
 		cache_file = @casset.render(:js, :gen_tags => false)[0]
-		Digest::MD5.file(cache_file).should == '9e0eb26aacc7892b448c8c75922fc5cd'
+		FileUtils.compare_file(cache_file, "#{assets_dir}results/new_parsers.js").should == true
 	end
 
 	it "should accept and use new minifiers" do
@@ -133,7 +135,7 @@ describe Casset do
 		@casset.set_minifier(:js, Minifier.new { |file| "compressed content: #{file}" })
 		@casset.js 'test.js'
 		cache_file = @casset.render(:js, :gen_tags => false)[0]
-		Digest::MD5.file(cache_file).should == 'ff3837b6f35ac834a484d690df4bca13'
+		FileUtils.compare_file(cache_file, "#{assets_dir}results/new_minifiers.js").should == true
 	end
 
 	it "should handle remote URLS correctly" do
@@ -158,7 +160,7 @@ describe Casset do
 		@casset.config(:combine => true, :min => false, :show_filenames_inside => true)
 		@casset.js 'test.js'
 		cache_file = @casset.render(:js, :gen_tags => false)[0]
-		Digest::MD5.file(cache_file).should == '4424eb9f94433a1d8d144da6b8ba769b'
+		FileUtils.compare_file(cache_file, "#{assets_dir}results/filenames_inside.js").should == true
 	end
 
 	it "should allow creation of groups using add_group" do
