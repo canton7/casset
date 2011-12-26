@@ -204,5 +204,19 @@ describe Casset do
 		@casset.add_group(:group, :js => 'test.js', :attr=>{:js => {'key' => 'value'}})
 		@casset.render(:js).should =~ /<script.*key="value".*><\/script>/
 	end
+
+	it "should correctly clear out cached assets" do
+		@casset.js 'test.js'
+		cache_file = @casset.render(:js, :gen_tags => false)[0]
+		# Shouldn't delete if it we specify CSS files only
+		@casset.clear_cache(:css)
+		File.exist?(cache_file).should == true
+		# Shouldn't delete it if we ask for all files before <an early date>
+		@casset.clear_cache(:all, :before => Time.new(1970, 1, 1, 0, 0, 0))
+		File.exist?(cache_file).should == true
+		# Should delete it if we ask for all js files since now
+		@casset.clear_cache(:js, :before => Time.now)
+		File.exist?(cache_file).should == false
+	end
 end
 

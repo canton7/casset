@@ -172,6 +172,17 @@ module Casset
 			raise "Unknown minifier type #{type}" unless @options[:minifiers].include?(type)
 			@options[:minifiers][type] = minifier
 		end
+
+		def clear_cache(type=:all, options={})
+			options = {
+				:before => nil,
+			}.merge(options)
+			glob = "#{@options[:root]}#{@options[:cache_dir]}*"
+			glob << ".#{type.to_s}" if type && type != :all
+			Dir.glob(glob).select{ |f| File.file?(f) }.each do |file|
+				File.delete(file) unless options[:before] && File.mtime(file) > options[:before]
+			end
+		end
 	end
 
 	# From http://tagaholic.me/2009/01/21/block-to-hash-conversion-ruby.html
