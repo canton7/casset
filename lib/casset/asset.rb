@@ -7,6 +7,7 @@ module Casset
 			:combine => nil,
 			:min => nil,
 			:min_file => nil,
+			:inline => nil,
 			:parser => nil,
 			:minifier => nil,
 			:retain_filename => nil,
@@ -38,6 +39,7 @@ module Casset
 			namespace = options[:namespaces][@options[:namespace]]
 			@remote = @file.include?('://') || namespace.include?('://')
 			if @remote
+				raise "Can't have an inline remote asset (#{@file})" if @options[:inline]
 				# Add on the namespace if the file doesn't have :// in it
 				@url = @path = (@file.include?('://') ? '' : namespace) + @file
 				# If it's remote, we can't combine it
@@ -64,7 +66,7 @@ module Casset
 			if @options[:min] && @options[:minifier]
 				content = @options[:minifier].minify(content)
 			end
-			return content
+			return content.chomp
 		end
 
 		def combine?
@@ -78,6 +80,10 @@ module Casset
 
 		def remote?
 			@remote
+		end
+
+		def inline?
+			@options[:inline]
 		end
 
 		def must_link_to?

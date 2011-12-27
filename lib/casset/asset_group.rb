@@ -65,6 +65,14 @@ module Casset
 			add(asset)
 		end
 
+		def enable
+			@options[:enable] = true
+		end
+
+		def disable
+			@options[:enable] = false
+		end
+
 		def render(types=nil)
 			types = [*types] || @assets.keys
 			types.each do |type|
@@ -113,9 +121,12 @@ module Casset
 
 		# Combines the files into the necessary cache files, doing writing, etc
 		# along the way
-		def generate(type)
+		def generate(type, options={})
+			options = {
+				:inline => false,
+			}.merge(options)
 			packs = []
-			render_comb, render_indv = @assets[type].partition{ |asset| asset.combine? }
+			render_comb, render_indv = @assets[type].reject{ |a| options[:inline] ^ a.inline? }.partition{ |a| a.combine? }
 
 			unless render_comb.empty?
 				packs << AssetPack.new(type, render_comb, @options)

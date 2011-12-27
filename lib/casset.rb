@@ -23,6 +23,7 @@ module Casset
 			:max_dep_depth => 5,
 			:combine => true,
 			:min => true,
+			:inline => false,
 			:minifiers => {
 				:js => nil,
 				:css => nil,
@@ -51,10 +52,12 @@ module Casset
 
 		@groups
 		@options
+		@finalized
 
 		def initialize()
 			@groups = {}
 			@options = DEFAULT_OPTIONS.config_clone
+			@finalized = false
 		end
 
 		def config(config=nil, &b)
@@ -132,11 +135,7 @@ module Casset
 			add_assets(:css, *args)
 		end
 
-		# Figures out which groups should be rendered, based on the current config
-		def render(type, options={})
-			options = {
-					:gen_tags => true
-			}.merge(options)
+		def finalize
 			# We're good to go. Assume no more config changes, and finalize
 			@groups.values.each{ |group| group.finalize(@options) }
 
@@ -146,14 +145,29 @@ module Casset
 			end
 
 			# Sort out the deps
-			groups = resolve_deps(groups)
+			@groups_to_render = resolve_deps(groups)
+		end
+
+		# Figures out which groups should be rendered, based on the current config
+		def render(type, options={})
+			options = {
+					:gen_tags => true,
+					:inline => false,
+			}.merge(options)
+
+			finalize() unless @finalized
 
 			# Generate all cache files, if needed, and get an array of generated packs
-			packs = groups.inject([]){ |s, group| s.push *group.generate(type) }
-			files = packs.map{ |pack| pack.render(options[:gen_tags]) }
+			packs = @groups_to_render.inject([]){ |s, group| s.push *group.generate(type, :inline => options[:inline]) }
+			files = packs.map{ |pack| pack.render(:gen_tags => options[:gen_tags], :inline => options[:inline]) }
 			# If returning tags, make them a string from an array
 			files = files.join("\n") if options[:gen_tags]
+			@finalized = true
 			return files
+		end
+
+		def render_inline(type, options={})
+			return render(type, options.merge(:inline => true))
 		end
 
 		# Resolves dependancies, recursively
@@ -163,7 +177,10 @@ module Casset
 			all_groups = []
 			[*groups].each do |group|
 				unless group.depends_on.empty?
-					dep_groups = group.depends_on.map{ |name| @groups[name] }
+					dep_groups = group.depends_on.map do |name|
+						raise "Unknown group #{name} as a dependeny for #{group.name}" unless @groups.include?(name)
+						@groups[name]
+					end
 					deps = resolve_deps(dep_groups, depth+1)
 					# Don't add a group twice
 					deps.select!{ |group| !all_groups.include?(group) }
@@ -174,6 +191,15 @@ module Casset
 			return all_groups
 		end
 
+		def enable(group_name)
+			raise "Unknown group #{group_name}" unless @groups.include?(group_name)
+			@groups[group_name].enable
+		end
+
+		def disable(group_name)
+			raise "Unkown group #{group_name}" unless @groups.include?(group_name)
+			@groups[group_name].disable
+		end
 		def add_parser(type, parser)
 			raise "Unknown parser type #{type}" unless @options[:parsers].include?(type)
 			parser.extensions.each do |ext|

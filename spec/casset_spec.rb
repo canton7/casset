@@ -238,5 +238,13 @@ describe Casset do
 		@casset.add_namespace(:mine, 'http://mine.tld/')
 		@casset.image('mine::testy.png', 'This is a remote image').should == '<img alt="This is a remote image" src="http://mine.tld/testy.png" />'
 	end
+
+	it "should handle inline assets" do
+		@casset.config(:min => false, :combine=> false)
+		@casset.add_group(:groupy, :js => 'test2.js', :enable => false)
+		@casset.add_group(:test, :js => 'test.js', :depends_on => :groupy, :inline => true)
+		@casset.render(:js, :gen_tags => false)[0].should == "#{assets_dir}js/test2.js"
+		@casset.render_inline(:js).should == %{<script type="text/javascript">\nalert('This is a test file')\n</script>\n}
+	end
 end
 

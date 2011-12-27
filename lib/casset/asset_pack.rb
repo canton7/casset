@@ -22,6 +22,14 @@ module Casset
 		end
 
 		def combine
+			content = @assets.inject('') do |s, asset|
+				s << "/* #{asset.url} */\n" if @options[:show_filenames_inside]
+				s << asset.render << "\n"
+			end
+			return content
+		end
+
+		def write_file(content)
 			cache_dir = @options[:root] + @options[:cache_dir]
 			Dir.mkdir(cache_dir) unless Dir.exist?(cache_dir)
 			cache_file_name = cache_file_name()
@@ -29,10 +37,6 @@ module Casset
 			file_url = @options[:url_root] + @options[:cache_dir] + cache_file_name
 			# If filename exists, we don't need to generate the cache
 			return file_url if File.exist?(filename)
-			content = @assets.inject('') do |s, asset|
-				s << "/* #{asset.url} */\n" if @options[:show_filenames_inside]
-				s << asset.render + "\n"
-			end
 			File.open(filename, 'w') { |f| f.write(content) }
 			return file_url
 		end
@@ -49,7 +53,7 @@ module Casset
 		def tag(filename)
 			r = ''
 			if @options[:show_filenames_before]
-				r << "<!-- File contains:\n" + @assets.map{ |a| " - #{a.url}" }.join("\n") + "\n-->"
+				r << "<!-- File contains:\n" << @assets.map{ |a| " - #{a.url}" }.join("\n") << "\n-->"
 			end
 			attr = @options[:attr][@type] || {}
 			case @type
@@ -64,9 +68,43 @@ module Casset
 			return r
 		end
 
-		def render(gen_tags)
-			filename = (@assets.count == 1 && @assets[0].must_link_to?) ? @assets[0].url : combine()
+		def inline_tag(content)
+			r = ''
+			if @options[:show_filenames_before]
+				r << "<!-- File contains:\n" << @assets.map{ |a| " - #{a.url}" }.join("\n") << "\n-->"
+			end
+			attr = @options[:attr][@type] || {}
+			case @type
+			when :js
+				attr.merge!(:type => "text/javascript")
+				start = "<script " << attr.map{ |k,v| "#{k}=\"#{v}\"" }.join(" ") << ">\n"
+				fin = "</script>\n"
+			when :css
+				attr.merge!(:type => "text/css")
+				start = "<style " << attr.map{ |k,v| "#{k}=\"#{v}\"" }.join(" ") << ">\n"
+				fin = "</style>\n"
+			else raise "Unknown asset type passed to inline_tag: #{@type}"
+			end
+			r << start << content << fin
+			return r
+		end
+
+		def render(options)
+			options = {
+				:inline => false,
+				:gen_tags => false,
+			}.merge(options)
+			return options[:inline] ? render_inline(options[:gen_tags]) : render_files(options[:gen_tags])
+		end
+
+		def render_files(gen_tags)
+			filename = (@assets.count == 1 && @assets[0].must_link_to?) ? @assets[0].url : write_file(combine())
 			return gen_tags ? tag(filename) : filename
+		end
+
+		def render_inline(gen_tags)
+			content = combine()
+			return gen_tags ? inline_tag(content) : content
 		end
 	end
 end
