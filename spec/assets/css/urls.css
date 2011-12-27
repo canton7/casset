@@ -1,0 +1,7 @@
+url(test.png)
+url("test.png")
+url('test.png')
+url(a/test.png)
+url(a/../test.png)
+url(../img/test.png)
+@import(thing.css)

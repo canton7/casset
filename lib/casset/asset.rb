@@ -21,6 +21,8 @@ module Casset
 		@remote
 		@finalized
 		@extension
+		# Used for rewriting URLs in CSS files
+		@cache_dir
 
 		def initialize(type, file, options)
 			raise "Unknown asset type #{type}" unless ASSET_TYPES.include?(type)
@@ -47,6 +49,7 @@ module Casset
 			else
 				@url = "#{options[:url_root]}#{namespace}#{options[:dirs][@type]}#{@file}"
 				@path = "#{options[:root]}#{namespace}#{options[:dirs][@type]}#{@file}"
+				@cache_dir = "#{options[:url_root]}#{options[:cache_dir]}"
 				raise Errno::ENOENT, "Asset #{@path} (#{File.absolute_path(@path)}) doesn't exist" unless File.exists?(@path)
 			end
 			if options[:parsers][@type].include?(@extension)
@@ -60,12 +63,11 @@ module Casset
 			raise "Can't render a remote file" if @remote
 			content = File.open(@path){ |f| f.read }
 			# If there's a suitable parser, use that
-			if @options[:parser]
-				content = @options[:parser].parse(content)
-			end
-			if @options[:min] && @options[:minifier]
-				content = @options[:minifier].minify(content)
-			end
+			content = @options[:parser].parse(content) if @options[:parser]
+			# Rewrite URLs in CSS files
+			CssUriRewriter.rewrite(content, File.dirname(@path), @cache_dir) if @type == :css
+			# *Then* minify
+			content = @options[:minifier].minify(content) if @options[:min] && @options[:minifier]
 			return content.chomp
 		end
 

@@ -8,6 +8,7 @@ require 'casset/asset_pack'
 require 'casset/parser'
 require 'casset/minifier'
 require 'casset/image'
+require 'casset/css_uri_rewriter'
 
 require 'ostruct'
 

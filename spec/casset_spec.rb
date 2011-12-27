@@ -246,5 +246,11 @@ describe Casset do
 		@casset.render(:js, :gen_tags => false)[0].should == "#{assets_dir}js/test2.js"
 		@casset.render_inline(:js).should == %{<script type="text/javascript">\nalert('This is a test file')\n</script>\n}
 	end
+
+	it "should correctly rewrite CSS URLs" do
+		@casset.css 'urls.css'
+		cache_file = @casset.render(:css, :gen_tags => false)[0]
+		FileUtils.compare_file(cache_file, "#{assets_dir}results/urls.css").should == true
+	end
 end
 
