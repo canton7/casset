@@ -1,6 +1,6 @@
 module Casset
 	module CssUriRewriter
-		PATTERN = /(url|@import)\s*\(\s*(['"]?)([^\/][^)\2]+)\2\s*\)/
+		PATTERN = /(url|@import)\s*\(\s*(['"]?)([^\/'"][^)\2]+)\2\s*\)/
 
 		def self.rewrite(css, before_dir, after_dir)
 			# Make sure dirs end in /

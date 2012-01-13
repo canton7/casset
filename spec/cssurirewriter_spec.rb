@@ -19,6 +19,10 @@ describe CssUriRewriter do
 		css.should == 'url(//hello)'
 		css = CssUriRewriter.rewrite('url(http://hello)', 'css/', 'public')
 		css.should == 'url(http://hello)'
+		css = CssUriRewriter.rewrite('url("/folder/img.jpg")', 'css/', 'public')
+		css.should == 'url("/folder/img.jpg")'
+		css = CssUriRewriter.rewrite("url('/folder/img.jpg')", 'css/', 'public')
+		css.should == "url('/folder/img.jpg')"
 	end
 
 	it "should ignore data URL thingies" do
