@@ -39,7 +39,7 @@ module Casset
 			},
 			:default_namespace => :core,
 			# The file root -- where the namespaces are relative to
-			:root => '',
+			:root => 'public/',
 			# The URL root -- where the namespaces are relative to, as URLs
 			:url_root => '',
 			# If asset is not combined, will retain old filename
