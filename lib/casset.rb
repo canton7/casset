@@ -9,6 +9,7 @@ require 'casset/parser'
 require 'casset/minifier'
 require 'casset/image'
 require 'casset/css_uri_rewriter'
+require 'casset/version'
 
 require 'ostruct'
 
@@ -54,6 +55,7 @@ module Casset
 		@groups
 		@options
 		@finalized
+		@groups_to_render
 
 		def initialize()
 			@groups = {}
@@ -201,6 +203,7 @@ module Casset
 			raise "Unkown group #{group_name}" unless @groups.include?(group_name)
 			@groups[group_name].disable
 		end
+
 		def add_parser(type, parser)
 			raise "Unknown parser type #{type}" unless @options[:parsers].include?(type)
 			parser.extensions.each do |ext|
