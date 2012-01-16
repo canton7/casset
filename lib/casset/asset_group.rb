@@ -38,7 +38,7 @@ module Casset
 			options[:depends_on] = [*options[:depends_on]]
 			@options = DEFAULT_OPTIONS.config_merge(options, :no_new => true)
 			@options[:depends_on].uniq!
-			@options[:enable] = true if @options[:enable].nil?
+			@options[:enable] = false if @options[:enable].nil?
 			@rendered = false
 		end
 

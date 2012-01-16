@@ -108,7 +108,7 @@ describe Casset do
 		@casset.js ['test.js', 'test2.js']
 		# Set the mtime of the file to a known, test state
 		files = ["#{assets_dir}js/test.js", "#{assets_dir}js/test2.js"]
-		times = files.inject([]){ |s, f| s << {:file => f, :atime => File.atime(f), :mtime => File.mtime(f)} }	
+		times = files.inject([]){ |s, f| s << {:file => f, :atime => File.atime(f), :mtime => File.mtime(f)} }
 		new_mtime = Time.new(2011, 12, 21, 17, 40, 51)
 		files.each{ |f| File.utime(new_mtime, new_mtime, f) }
 		cache_file = @casset.render(:js, :gen_tags => false)[0]
@@ -187,7 +187,7 @@ describe Casset do
 
 	it "sould resolve deps correctly" do
 		@casset.config(:combine => false, :min => false, :url_root => 'public/')
-		@casset.add_group(:group2, :js => 'test2.js', :depends_on => [:group1])
+		@casset.add_group(:group2, :js => 'test2.js', :depends_on => [:group1], :enable => true)
 		@casset.js :group1, 'test.js'
 		# Must render these in the right order
 		@casset.render(:js, :gen_tags => false).should == ['public/js/test.js', 'public/js/test2.js']
@@ -198,7 +198,7 @@ describe Casset do
 
 	it "should handle tag attributes correctly" do
 		@casset.config(:combine => false, :min => false)
-		@casset.add_group(:group, :js => 'test.js', :attr=>{:js => {'key' => 'value'}})
+		@casset.add_group(:group, :js => 'test.js', :attr=>{:js => {'key' => 'value'}}, :enable => true)
 		@casset.render(:js).should =~ /<script.*key="value".*><\/script>/
 	end
 
@@ -242,7 +242,7 @@ describe Casset do
 	it "should handle inline assets" do
 		@casset.config(:min => false, :combine=> false)
 		@casset.add_group(:groupy, :js => 'test2.js', :enable => false)
-		@casset.add_group(:test, :js => 'test.js', :depends_on => :groupy, :inline => true)
+		@casset.add_group(:test, :js => 'test.js', :depends_on => :groupy, :inline => true, :enable => true)
 		@casset.render(:js, :gen_tags => false)[0].should == "#{assets_dir}js/test2.js"
 		@casset.render_inline(:js).should == %{<script type="text/javascript">\nalert('This is a test file')\n</script>\n}
 	end
