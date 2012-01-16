@@ -29,7 +29,7 @@ module Casset
 			return content
 		end
 
-		def write_file(content)
+		def write_file
 			cache_dir = @options[:root] + @options[:cache_dir]
 			Dir.mkdir(cache_dir) unless Dir.exist?(cache_dir)
 			cache_file_name = cache_file_name()
@@ -37,7 +37,7 @@ module Casset
 			file_url = @options[:url_root] + @options[:cache_dir] + cache_file_name
 			# If filename exists, we don't need to generate the cache
 			return file_url if File.exist?(filename)
-			File.open(filename, 'w') { |f| f.write(content) }
+			File.open(filename, 'w') { |f| f.write(combine()) }
 			return file_url
 		end
 
@@ -98,7 +98,7 @@ module Casset
 		end
 
 		def render_files(gen_tags)
-			filename = (@assets.count == 1 && @assets[0].must_link_to?) ? @assets[0].url : write_file(combine())
+			filename = (@assets.count == 1 && @assets[0].must_link_to?) ? @assets[0].url : write_file()
 			return gen_tags ? tag(filename) : filename
 		end
 
