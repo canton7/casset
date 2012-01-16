@@ -50,7 +50,6 @@ module Casset
 				@url = "#{options[:url_root]}#{namespace}#{options[:dirs][@type]}#{@file}"
 				@path = "#{options[:root]}#{namespace}#{options[:dirs][@type]}#{@file}"
 				@cache_dir = "#{options[:url_root]}#{options[:cache_dir]}"
-				raise Errno::ENOENT, "Asset #{@path} (#{File.absolute_path(@path)}) doesn't exist" unless File.exists?(@path)
 			end
 			if options[:parsers][@type].include?(@extension)
 				@options[:parser] = options[:parsers][@type][@extension][0]
@@ -60,6 +59,7 @@ module Casset
 		end
 
 		def render
+			raise Errno::ENOENT, "Asset #{@path} (#{File.absolute_path(@path)}) doesn't exist" unless File.exists?(@path)
 			raise "Can't render a remote file" if @remote
 			content = File.open(@path){ |f| f.read }
 			# If there's a suitable parser, use that
