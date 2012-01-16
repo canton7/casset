@@ -65,7 +65,7 @@ module Casset
 
 		def config(config=nil, &b)
 			config = ConfigStruct.block_to_hash(b) unless config
-			@options.config_merge!(config, :overwrite => true)
+			@options.config_merge!(config.config_clone, :overwrite => true)
 		end
 
 		def add_assets(type, *args)
@@ -94,6 +94,7 @@ module Casset
 		end
 
 		def add_group(name, options={})
+			options = options.config_clone
 			name = name.to_sym
 			js = options.delete(:js) || []
 			css = options.delete(:css) || []
