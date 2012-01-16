@@ -205,8 +205,9 @@ module Casset
 			@groups[group_name].disable
 		end
 
-		def add_parser(type, parser)
+		def add_parser(type, *extensions, &blk)
 			raise "Unknown parser type #{type}" unless @options[:parsers].include?(type)
+			parser = Parser.new(*extensions, &blk)
 			parser.extensions.each do |ext|
 				@options[:parsers][type][ext] = [] unless @options[:parsers].include?(ext)
 				# Add onto beginning -- higher priority
@@ -214,8 +215,9 @@ module Casset
 			end
 		end
 
-		def set_minifier(type, minifier)
+		def set_minifier(type, &blk)
 			raise "Unknown minifier type #{type}" unless @options[:minifiers].include?(type)
+			minifier = Minifier.new(&blk)
 			@options[:minifiers][type] = minifier
 		end
 

@@ -121,7 +121,7 @@ describe Casset do
 
 	it "should accept and use new parsers" do
 		@casset.config(:combine => true, :min => false)
-		@casset.add_parser(:js, Parser.new('js') { |file| "parsed content: #{file}" })
+		@casset.add_parser(:js, 'js'){ |file| "parsed content: #{file}" }
 		@casset.js 'test.js'
 		cache_file = @casset.render(:js, :gen_tags => false)[0]
 		FileUtils.compare_file(cache_file, "#{assets_dir}results/new_parsers.js").should == true
@@ -129,7 +129,7 @@ describe Casset do
 
 	it "should accept and use new minifiers" do
 		@casset.config(:combine => true, :min => true)
-		@casset.set_minifier(:js, Minifier.new { |file| "compressed content: #{file}" })
+		@casset.set_minifier(:js){ |file| "compressed content: #{file}" }
 		@casset.js 'test.js'
 		cache_file = @casset.render(:js, :gen_tags => false)[0]
 		FileUtils.compare_file(cache_file, "#{assets_dir}results/new_minifiers.js").should == true
