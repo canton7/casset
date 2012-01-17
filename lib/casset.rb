@@ -228,7 +228,13 @@ module Casset
 			glob = "#{@options[:root]}#{@options[:cache_dir]}*"
 			glob << ".#{type.to_s}" if type && type != :all
 			Dir.glob(glob).select{ |f| File.file?(f) }.each do |file|
-				File.delete(file) unless options[:before] && File.mtime(file) > options[:before]
+				# If they've left clear_cache on on a loaded server, we can get races
+				# between different threads deleting the same file... Simply ignore the error
+				# if we hit it
+				begin
+					File.delete(file) unless options[:before] && File.mtime(file) > options[:before]
+				rescue Errno::EACCES
+				end
 			end
 		end
 

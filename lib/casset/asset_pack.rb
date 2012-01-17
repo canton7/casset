@@ -37,7 +37,15 @@ module Casset
 			file_url = @options[:url_root] + @options[:cache_dir] + cache_file_name
 			# If filename exists, we don't need to generate the cache
 			return file_url if File.exist?(filename)
-			File.open(filename, 'w') { |f| f.write(combine()) }
+			File.open(filename, 'w') do |f|
+				# Try and get an exclusive lock. If we can't, assume someone else is writing
+				# the same content we are, and don't bother.
+				# This is a loose assumption, but we risk tons of processes waiting on the
+				# write lock if someone's left clear_cache on on a heavy server
+				if f.flock(File::LOCK_EX | File::LOCK_NB)
+					f.write(combine())
+				end
+			end
 			return file_url
 		end
 

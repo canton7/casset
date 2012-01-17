@@ -61,7 +61,11 @@ module Casset
 		def render
 			raise Errno::ENOENT, "Asset #{@path} (#{File.absolute_path(@path)}) doesn't exist" unless File.exists?(@path)
 			raise "Can't render a remote file" if @remote
-			content = File.open(@path){ |f| f.read }
+			content = File.open(@path) do |f|
+				# If someone's got it locked for writing, wait until they've finished
+				f.flock(File::LOCK_SH)
+				f.read
+			end
 			# If there's a suitable parser, use that
 			content = @options[:parser].parse(content) if @options[:parser]
 			# Rewrite URLs in CSS files
