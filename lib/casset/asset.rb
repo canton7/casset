@@ -41,7 +41,9 @@ module Casset
 			namespace = options[:namespaces][file_to_use[:namespace]]
 			@remote = file.include?('://') || namespace.include?('://')
 			if @remote
-				raise "Can't have an inline remote asset (#{file})" if @options[:inline]
+				# We can't have inline remote assets, so don't even try.
+				# This is superior to raising an exception, as user can set global inline
+				@options[:inline] = false
 				# Add on the namespace if the file doesn't have :// in it
 				@url = @path = (file.include?('://') ? '' : namespace) + file
 				# If it's remote, we can't combine it
