@@ -100,7 +100,7 @@ describe Casset do
 	it "should return the correct link to a file if not minifying or combining" do
 		@casset.config(:combine => false, :min => false, :url_root => 'public/')
 		@casset.js 'test.js'
-		@casset.render(:js).should == '<script type="text/javascript" src="public/js/test.js"></script>'
+		@casset.render(:js).chomp.should == '<script type="text/javascript" src="public/js/test.js"></script>'
 	end
 
 	it "should return a valid file if combining but not minifying" do

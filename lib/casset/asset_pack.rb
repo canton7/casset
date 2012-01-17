@@ -60,17 +60,17 @@ module Casset
 
 		def tag(filename)
 			r = ''
-			if @options[:show_filenames_before]
+			if @options[:show_filenames_before] && (@assets.count > 1 || !@assets[0].must_link_to?)
 				r << "<!-- File contains:\n" << @assets.map{ |a| " - #{a.url}" }.join("\n") << "\n-->\n"
 			end
 			attr = @options[:attr][@type] || {}
 			case @type
 			when :js
 				attr.merge!(:type => "text/javascript", :src => filename)
-				r << "<script " << attr.map{ |k,v| "#{k}=\"#{v}\"" }.join(" ") << "></script>"
+				r << "<script " << attr.map{ |k,v| "#{k}=\"#{v}\"" }.join(" ") << "></script>\n"
 			when :css
 				attr.merge!(:rel => "stylesheet", :type => "text/css", :href => filename)
-				r << "<link " << attr.map{ |k,v| "#{k}=\"#{v}\"" }.join(" ") << " />"
+				r << "<link " << attr.map{ |k,v| "#{k}=\"#{v}\"" }.join(" ") << " />\n"
 			else raise "Unknown asset type passed to tag: #{@type}"
 			end
 			return r
