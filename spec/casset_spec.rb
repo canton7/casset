@@ -273,5 +273,17 @@ describe Casset do
 		@casset.js 'test.js', :attr => {:defer => 'defer'}
 		@casset.render(:js).should =~ /defer="defer"/
 	end
+
+	it "should allow namespaces to override folder settings" do
+		@casset.config(:min => false, :combine => false)
+		@casset.add_namespace(:mine, {:path => '', :dirs => {:js => 'css/'}})
+		@casset.js 'mine::urls.css'
+		@casset.render(:js, :gen_tags => false)[0].should == "#{assets_dir}css/urls.css"
+	end
+
+	it "should allow namespaces to override folder settings for images" do
+		@casset.add_namespace(:mine, {:path => '', :dirs => {:img => 'yay_images/'}})
+		@casset.image('mine::hi.jpg', 'Alt text', :gen_tag => false).should == "#{assets_dir}yay_images/hi.jpg"
+	end
 end
 

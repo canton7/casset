@@ -8,6 +8,7 @@ module Casset
 		@path
 		@attr
 		@options
+		@finalized
 
 		def initialize(path, alt, attr={})
 			@options = DEFAULT_OPTIONS.config_clone
@@ -17,21 +18,37 @@ module Casset
 			@path, @attr = path, attr
 			# We make them specify the alt explicitely for convenience
 			@attr[:alt] = alt
+			@finalized = false
 		end
 
 		def tag(options)
+			finalize(options)
+			"<img " << @attr.map{ |k,v| "#{k}=\"#{v}\"" }.join(" ") << " />"
+		end
+
+		def src(options)
+			finalize(options)
+			@attr[:src]
+		end
+
+		def finalize(options)
+			return if @finalized
 			# We know the namespaces at this point..
 			namespace = options[:namespaces][@options[:namespace]]
+			if namespace.include?(:dirs) && namespace[:dirs].include?(:img)
+				dir = namespace[:dirs][:img]
+			else
+				dir = options[:dirs][:img]
+			end
 			if @path.include?('://')
 				url = @path
-			elsif namespace.include?('://')
-				url = namespace + @path
+			elsif namespace[:path].include?('://')
+				url = "#{namespace[:path]}#{@path}"
 			else
-				url = options[:url_root] + namespace + options[:dirs][:img] + @path
+				url = "#{options[:url_root]}#{namespace[:path]}#{dir}#{@path}"
 			end
 			@attr[:src] = url
-			#TODO embedding
-			"<img " << @attr.map{ |k,v| "#{k}=\"#{v}\"" }.join(" ") << " />"
+			@finalized = true
 		end
 	end
 end

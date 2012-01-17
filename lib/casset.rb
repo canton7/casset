@@ -35,7 +35,7 @@ module Casset
 				:css => {},
 			},
 			:namespaces => {
-				:core => '',
+				:core => {:path => ''},
 			},
 			:default_namespace => :core,
 			# The file root -- where the namespaces are relative to
@@ -133,7 +133,9 @@ module Casset
 		end
 
 		def add_namespace(key, path)
-			@options[:namespaces][key.to_sym] = path
+			# path can either be the path to the namespace, or hash of :path, :dirs
+			namespace = path.is_a?(Hash) ? path : {:path => path}
+			@options[:namespaces][key.to_sym] = namespace
 		end
 		alias_method :set_namespace, :add_namespace
 
@@ -152,6 +154,8 @@ module Casset
 
 		def finalize
 			# We're good to go. Assume no more config changes, and finalize
+			# Sort out namespaces...
+
 			@groups.values.each{ |group| group.finalize(@options) }
 
 			# Filter down the list of groups into those that are actually going to be rendered
@@ -258,11 +262,15 @@ module Casset
 			end
 		end
 
-		def image(path, alt, attr={})
+		def image(path, alt='', attr={})
+			attr = {
+				:gen_tag => true
+			}.merge(attr)
+			gen_tag = attr.delete(:gen_tag)
 			path, namespace = path.split('::', 2).reverse
 			attr[:namespace] = (namespace || @options[:default_namespace]).to_sym
 			img = Image.new(path, alt, attr)
-			img.tag(@options)
+			return gen_tag ? img.tag(@options) : img.src(@options)
 		end
 	end
 

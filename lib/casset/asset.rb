@@ -39,18 +39,24 @@ module Casset
 			file_to_use = @min_file && @options[:min] ? @min_file : @file
 			file = file_to_use[:file]
 			namespace = options[:namespaces][file_to_use[:namespace]]
-			@remote = file.include?('://') || namespace.include?('://')
+			# Allow namespace dir to override dir from options
+			if namespace.include?(:dirs) && namespace[:dirs].include?(@type)
+				dir = namespace[:dirs][@type]
+			else
+				dir = options[:dirs][@type]
+			end
+			@remote = file.include?('://') || namespace[:path].include?('://')
 			if @remote
 				# We can't have inline remote assets, so don't even try.
 				# This is superior to raising an exception, as user can set global inline
 				@options[:inline] = false
 				# Add on the namespace if the file doesn't have :// in it
-				@url = @path = (file.include?('://') ? '' : namespace) + file
+				@url = @path = (file.include?('://') ? '' : namespace[:path]) + file
 				# If it's remote, we can't combine it
 				@options[:combine] = false
 			else
-				@url = "#{options[:url_root]}#{namespace}#{options[:dirs][@type]}#{file}"
-				@path = "#{options[:root]}#{namespace}#{options[:dirs][@type]}#{file}"
+				@url = "#{options[:url_root]}#{namespace[:path]}#{dir}#{file}"
+				@path = "#{options[:root]}#{namespace[:path]}#{dir}#{file}"
 				@cache_dir = "#{options[:url_root]}#{options[:cache_dir]}"
 			end
 			if options[:parsers][@type].include?(@extension)
