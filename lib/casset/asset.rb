@@ -69,7 +69,8 @@ module Casset
 			# If there's a suitable parser, use that
 			content = @options[:parser].parse(content) if @options[:parser]
 			# Rewrite URLs in CSS files
-			content = CssUriRewriter.rewrite(content, File.dirname(@path), @cache_dir) if @type == :css
+			# We want the file's location as it was previously seen by the browser
+			content = CssUriRewriter.rewrite(content, File.dirname(@url), @cache_dir) if @type == :css
 			# *Then* minify
 			content = @options[:minifier].minify(content) if @options[:min] && @options[:minifier]
 			return content.chomp
