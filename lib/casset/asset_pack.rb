@@ -26,7 +26,7 @@ module Casset
 				s << "/* #{asset.url} */\n" if @options[:show_filenames_inside]
 				s << asset.render << "\n"
 			end
-			return content
+			return content.chomp
 		end
 
 		def write_file
@@ -86,11 +86,11 @@ module Casset
 			when :js
 				attr.merge!(:type => "text/javascript")
 				start = "<script " << attr.map{ |k,v| "#{k}=\"#{v}\"" }.join(" ") << ">\n"
-				fin = "</script>\n"
+				fin = "\n</script>\n"
 			when :css
 				attr.merge!(:type => "text/css")
 				start = "<style " << attr.map{ |k,v| "#{k}=\"#{v}\"" }.join(" ") << ">\n"
-				fin = "</style>\n"
+				fin = "\n</style>\n"
 			else raise "Unknown asset type passed to inline_tag: #{@type}"
 			end
 			r << start << content << fin
