@@ -11,5 +11,5 @@ Gem::Specification.new do |s|
   s.email = 'antony dot mail at gmail'
   s.required_ruby_version = '>= 1.9.2'
 
-  s.files = Dir['{bin,lib}/**/*']
+  s.files = Dir['lib/**/*']
 end
