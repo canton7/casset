@@ -61,6 +61,7 @@ module Casset
 			@groups = {}
 			@options = DEFAULT_OPTIONS.config_clone
 			@finalized = false
+			@groups_to_render = []
 		end
 
 		def config(config=nil, &b)
@@ -187,7 +188,7 @@ module Casset
 			@finalized = true
 
 			# Generate all cache files, if needed, and get an array of generated packs
-			packs = @groups_to_render.inject([]){ |s, group| s.push *group.generate(type, :inline => options[:inline]) }
+			packs = @groups_to_render.inject([]){ |s, group| s.push(*group.generate(type, :inline => options[:inline])) }
 			files = packs.map{ |pack| pack.render(:gen_tags => options[:gen_tags], :inline => options[:inline]) }
 			# If returning tags, make them a string from an array
 			files = files.join("\n") if options[:gen_tags]
@@ -211,8 +212,8 @@ module Casset
 					end
 					deps = resolve_deps(dep_groups, depth+1)
 					# Don't add a group twice
-					deps.select!{ |group| !all_groups.include?(group) }
-					all_groups.push *deps
+					deps.select!{ |g| !all_groups.include?(g) }
+					all_groups.push(*deps)
 				end
 				all_groups << group unless all_groups.include?(group)
 			end

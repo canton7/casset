@@ -2,18 +2,34 @@ require 'casset'
 
 module Sinatra
 	module Casset
+
+		module ConfigMethods
+			def self.included(base)
+				base.extend ClassMethods
+			end
+			module ClassMethods
+				def parameter(*names)
+					names.each do |name|
+						define_method name do |*values, &blk|
+							@funcs[name] = {:args => [*values], :block => blk}
+						end
+					end
+				end
+			end
+		end
+
 		class CassetConfig
+			include ConfigMethods
 
 			attr_reader :funcs, :configuration
 
-			def initialize(&blk)
-				@funcs, @configuration = {}, {}
-
-				parameter :add_assets, :add_group, :group_options, :add_namespace,
+			parameter :add_assets, :add_group, :group_options, :add_namespace,
 					:set_default_namespace, :js, :css, :enable, :disable, :add_parser,
 					:set_minifier, :clear_cache
 
-					parse_funcs(&blk) if block_given?
+			def initialize(&blk)
+				@funcs, @configuration = {}, {}
+				parse_funcs(&blk) if block_given?
 			end
 
 			def parse_funcs(&blk)
@@ -23,14 +39,6 @@ module Sinatra
 
 			def config(config)
 				@configuration.merge!(config)
-			end
-
-			def parameter(*names)
-				names.each do |name|
-					self.class.send(:define_method, name) do |*values, &blk|
-						@funcs[name] = {:args => [*values], :block => blk}
-					end
-				end
 			end
 		end
 
