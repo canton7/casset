@@ -3,10 +3,8 @@ module Casset
 		ASSET_TYPES = [:js, :css]
 
 		DEFAULT_OPTIONS = {
-			:namespace => :core,
 			:combine => nil,
 			:min => nil,
-			:min_file => nil,
 			:inline => nil,
 			:parser => nil,
 			:minifier => nil,
@@ -24,31 +22,33 @@ module Casset
 		# Used for rewriting URLs in CSS files
 		@cache_dir
 
-		def initialize(type, file, options)
+		def initialize(type, file, options, min_file=nil)
 			raise "Unknown asset type #{type}" unless ASSET_TYPES.include?(type)
-			@type, @file = type, file
+			@type, @file, @min_file = type, file, min_file
 			# We don't yet know the path. We will after finalize() is called
 			@path = nil
 			@options = DEFAULT_OPTIONS.merge(options)
 			# Strip period from extension
-			@extension = File.extname(@file)[1..-1]
+			@extension = File.extname(@file[:file])[1..-1]
 			@finalized = false
 		end
 
 		# Called when we've finished mucking about with the Casset config
 		def finalize(options)
 			@options.config_merge!(options, :no_new => true)
-			namespace = options[:namespaces][@options[:namespace]]
-			@remote = @file.include?('://') || namespace.include?('://')
+			file_to_use = @min_file && @options[:min] ? @min_file : @file
+			file = file_to_use[:file]
+			namespace = options[:namespaces][file_to_use[:namespace]]
+			@remote = file.include?('://') || namespace.include?('://')
 			if @remote
-				raise "Can't have an inline remote asset (#{@file})" if @options[:inline]
+				raise "Can't have an inline remote asset (#{file})" if @options[:inline]
 				# Add on the namespace if the file doesn't have :// in it
-				@url = @path = (@file.include?('://') ? '' : namespace) + @file
+				@url = @path = (file.include?('://') ? '' : namespace) + file
 				# If it's remote, we can't combine it
 				@options[:combine] = false
 			else
-				@url = "#{options[:url_root]}#{namespace}#{options[:dirs][@type]}#{@file}"
-				@path = "#{options[:root]}#{namespace}#{options[:dirs][@type]}#{@file}"
+				@url = "#{options[:url_root]}#{namespace}#{options[:dirs][@type]}#{file}"
+				@path = "#{options[:root]}#{namespace}#{options[:dirs][@type]}#{file}"
 				@cache_dir = "#{options[:url_root]}#{options[:cache_dir]}"
 			end
 			if options[:parsers][@type].include?(@extension)
@@ -72,7 +72,7 @@ module Casset
 			# We want the file's location as it was previously seen by the browser
 			content = CssUriRewriter.rewrite(content, File.dirname(@url), @cache_dir) if @type == :css
 			# *Then* minify
-			content = @options[:minifier].minify(content) if @options[:min] && @options[:minifier]
+			content = @options[:minifier].minify(content) if @options[:min] && @options[:minifier] && !@options[:min_file]
 			return content.chomp
 		end
 

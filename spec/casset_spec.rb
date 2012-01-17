@@ -35,11 +35,11 @@ describe Casset do
 		@casset.groups[:page].assets[:js][0].should_not == nil
   end
 
-	it "should add mutiple JS files using 1-arg syntax" do
+	it "should add multiple JS files using 1-arg syntax" do
 		@casset.js ['dummy1.js', 'dummy2.js']
 		@casset.groups[:page].assets[:js].length.should == 2
-		@casset.groups[:page].assets[:js][0].file.should == 'dummy1.js'
-		@casset.groups[:page].assets[:js][1].file.should == 'dummy2.js'
+		@casset.groups[:page].assets[:js][0].file[:file].should == 'dummy1.js'
+		@casset.groups[:page].assets[:js][1].file[:file].should == 'dummy2.js'
 	end
 
 	it "should correctly handle adding multiple JS files after each other" do
@@ -89,7 +89,7 @@ describe Casset do
 
 	it "should resolve namespaces correctly" do
 		@casset.js 'namespace::dummy.js'
-		@casset.groups[:page].assets[:js][0].options[:namespace].should == :namespace
+		@casset.groups[:page].assets[:js][0].file[:namespace].should == :namespace
 	end
 
 	it "should complain if asked to render a nonexistent asset" do
@@ -251,6 +251,22 @@ describe Casset do
 		@casset.css 'urls.css'
 		cache_file = @casset.render(:css, :gen_tags => false)[0]
 		FileUtils.compare_file(cache_file, "#{assets_dir}results/urls.css").should == true
+	end
+
+	it "should use min_file if specified" do
+		@casset.js 'test2.js', :min_file => 'test.js', :min => true
+		@casset.js :another_group, 'test2.js', :min_file => 'test.js', :min => false
+		cache_files = @casset.render(:js, :gen_tags => false)
+		FileUtils.compare_file(cache_files[0], "#{assets_dir}js/test.js").should == true
+		FileUtils.compare_file(cache_files[1], "#{assets_dir}js/test2.js").should == true
+	end
+
+	it "shouldn't attempt to minify the min_file" do
+		@casset.set_minifier(:js){ |file| "compressed content: #{file}" }
+		@casset.config(:min => true)
+		@casset.js 'test2.js', :min_file => 'test.js'
+		cache_file = @casset.render(:js, :gen_tags => false)[0]
+		FileUtils.compare_file(cache_file, "#{assets_dir}results/new_minifiers.js").should == true
 	end
 end
 

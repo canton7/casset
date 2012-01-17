@@ -110,8 +110,14 @@ module Casset
 				# Don't attempt to resolve it, though. We're too lazy
 				# Reverse ensures that, if no namespace present, nil is set
 				file, namespace = file.split('::', 2).reverse
-				options[:namespace] = (namespace || @options[:default_namespace]).to_sym
-				asset = Asset.new(type, file, options)
+				file = {:file => file, :namespace => (namespace || @options[:default_namespace]).to_sym}
+				if options[:min_file]
+					min_file, min_namespace = options.delete(:min_file).split('::', 2).reverse
+					min_file = {:file => min_file, :namespace => (min_namespace || @options[:default_namespace]).to_sym}
+				else
+					min_file = nil
+				end
+				asset = Asset.new(type, file, options, min_file)
 				@groups[group] << asset
 			end
 		end
