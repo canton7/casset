@@ -78,9 +78,6 @@ module Casset
 
 		def inline_tag(content)
 			r = ''
-			if @options[:show_filenames_before]
-				r << "<!-- File contains:\n" << @assets.map{ |a| " - #{a.url}" }.join("\n") << "\n-->\n"
-			end
 			attr = @options[:attr][@type] || {}
 			case @type
 			when :js
