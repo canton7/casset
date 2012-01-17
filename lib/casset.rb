@@ -159,24 +159,33 @@ module Casset
 		end
 
 		# Figures out which groups should be rendered, based on the current config
-		def render(type, options={})
+		def render(type=:all, options={})
+			if type == :all
+				# Rely on the face that << works on both strings and arrays
+				# and that gen_tags is either set for both (so return array), or none
+				# (so return string)
+				files = render(:js, options)
+				files << render(:css, options)
+				return files
+			end
+
 			options = {
 					:gen_tags => true,
 					:inline => false,
 			}.merge(options)
 
 			finalize() unless @finalized
+			@finalized = true
 
 			# Generate all cache files, if needed, and get an array of generated packs
 			packs = @groups_to_render.inject([]){ |s, group| s.push *group.generate(type, :inline => options[:inline]) }
 			files = packs.map{ |pack| pack.render(:gen_tags => options[:gen_tags], :inline => options[:inline]) }
 			# If returning tags, make them a string from an array
 			files = files.join("\n") if options[:gen_tags]
-			@finalized = true
 			return files
 		end
 
-		def render_inline(type, options={})
+		def render_inline(type=:all, options={})
 			return render(type, options.merge(:inline => true))
 		end
 
