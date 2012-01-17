@@ -272,6 +272,7 @@ module Casset
 			img = Image.new(path, alt, attr)
 			return gen_tag ? img.tag(@options) : img.src(@options)
 		end
+		alias_method :img, :image
 	end
 
 	# From http://tagaholic.me/2009/01/21/block-to-hash-conversion-ruby.html
