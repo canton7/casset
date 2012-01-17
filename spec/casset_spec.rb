@@ -268,5 +268,10 @@ describe Casset do
 		cache_file = @casset.render(:js, :gen_tags => false)[0]
 		FileUtils.compare_file(cache_file, "#{assets_dir}results/new_minifiers.js").should == true
 	end
+
+	it "should allow shortcut where options given to js or css which don't apply to an asset get applied to the group" do
+		@casset.js 'test.js', :attr => {:defer => 'defer'}
+		@casset.render(:js).should =~ /defer="defer"/
+	end
 end
 

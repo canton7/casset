@@ -27,7 +27,7 @@ module Casset
 			@type, @file, @min_file = type, file, min_file
 			# We don't yet know the path. We will after finalize() is called
 			@path = nil
-			@options = DEFAULT_OPTIONS.merge(options)
+			@options = DEFAULT_OPTIONS.config_merge(options, :no_new => true)
 			# Strip period from extension
 			@extension = File.extname(@file[:file])[1..-1]
 			@finalized = false

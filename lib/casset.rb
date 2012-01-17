@@ -119,6 +119,11 @@ module Casset
 				end
 				asset = Asset.new(type, file, options, min_file)
 				@groups[group] << asset
+				# If they specified options which aren't acceptable to the file, apply to the group
+				group_options = options.select{ |key| !Asset::DEFAULT_OPTIONS.include?(key) }
+				# If one of those was attr, adjust it (as is js- or css-specific)
+				group_options[:attr] = {type => group_options[:attr] } if group_options.include?(:attr)
+				@groups[group].set_options(group_options)
 			end
 		end
 
