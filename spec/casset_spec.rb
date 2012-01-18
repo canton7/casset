@@ -285,5 +285,17 @@ describe Casset do
 		@casset.add_namespace(:mine, {:path => '', :dirs => {:img => 'yay_images/'}})
 		@casset.image('mine::hi.jpg', 'Alt text', :gen_tag => false).should == "#{assets_dir}yay_images/hi.jpg"
 	end
+
+	it "should resolve procs in config" do
+		@casset.config(:min => Proc.new{ true }, :combine => false)
+		@casset.js('test.js')
+		@casset.js('test2.js', :min => Proc.new{ false })
+		files = @casset.render(:js, :gen_tags => false)
+		# Should be minified
+		files[0].should_not == "#{assets_dir}js/test.js"
+		# Shouldn't
+		files[1].should == "#{assets_dir}js/test2.js"
+
+	end
 end
 

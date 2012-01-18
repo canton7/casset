@@ -114,6 +114,7 @@ module Casset
 		# Called when we've finished mucking about with the Casset config
 		def finalize(config)
 			@options.config_merge!(config, :no_new => true)
+			@options.resolve_procs!
 			each_asset do |asset|
 				asset.finalize(@options.config_merge(config))
 			end

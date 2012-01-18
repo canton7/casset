@@ -157,8 +157,9 @@ module Casset
 
 		def finalize
 			# We're good to go. Assume no more config changes, and finalize
+			# Resolve any procs in our config.
+			@options.resolve_procs!
 			# Sort out namespaces...
-
 			@groups.values.each{ |group| group.finalize(@options) }
 
 			# Filter down the list of groups into those that are actually going to be rendered
@@ -267,6 +268,7 @@ module Casset
 		end
 
 		def image(path, alt='', attr={})
+			@options.resolve_procs!
 			attr = {
 				:gen_tag => true,
 				:request_path => @options[:request_path],

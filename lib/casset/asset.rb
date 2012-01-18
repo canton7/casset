@@ -36,6 +36,7 @@ module Casset
 		# Called when we've finished mucking about with the Casset config
 		def finalize(options)
 			@options.config_merge!(options, :no_new => true)
+			@options.resolve_procs!
 			file_to_use = @min_file && @options[:min] ? @min_file : @file
 			file = file_to_use[:file]
 			namespace = options[:namespaces][file_to_use[:namespace]]
