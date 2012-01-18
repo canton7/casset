@@ -78,7 +78,7 @@ module Casset
 			content = @options[:parser].parse(content) if @options[:parser]
 			# Rewrite URLs in CSS files
 			# We want the file's location as it was previously seen by the browser
-			content = CssUriRewriter.rewrite(content, File.dirname(@url), @cache_dir) if @type == :css
+			content = UriRewriter.rewrite_css(content, File.dirname(@url), @cache_dir) if @type == :css
 			# *Then* minify
 			content = @options[:minifier].minify(content) if @options[:min] && @options[:minifier] && !@options[:min_file]
 			return content.chomp
