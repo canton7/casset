@@ -68,5 +68,15 @@ describe Hash do
 		b = {:a => 4, :b => [:b, :c]}
 		a.config_merge(b, :overwrite => true).should == {:a => 4, :b => [:b, :c]}
 	end
+
+	it "should resolve procs" do
+		a = {:a => {:b => Proc.new{ false }}}
+		a.resolve_procs!.should == {:a => {:b => false}}
+	end
+
+	it "should resolve lambdas" do
+		a = {:a => {:b => lambda { return false }}}
+		a.resolve_procs!.should == {:a => {:b => false}}
+	end
 end
 

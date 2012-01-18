@@ -38,4 +38,14 @@ class Hash
 		end
 		return target
 	end
+
+	def resolve_procs!
+		self.each_key do |k|
+			if self[k].is_a?(Hash)
+				self[k].resolve_procs!
+			elsif self[k].respond_to?(:call)
+				self[k] = self[k].call
+			end
+		end
+	end
 end
