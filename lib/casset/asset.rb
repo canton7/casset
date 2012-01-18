@@ -55,6 +55,7 @@ module Casset
 				# If it's remote, we can't combine it
 				@options[:combine] = false
 			else
+				# URL is relative to the document root
 				@url = "#{options[:url_root]}#{namespace[:path]}#{dir}#{file}"
 				@path = "#{options[:root]}#{namespace[:path]}#{dir}#{file}"
 				@cache_dir = "#{options[:url_root]}#{options[:cache_dir]}"

@@ -21,6 +21,9 @@ module Casset
 		end
 
 		def self.rewrite_url(request_path, url)
+			return url if url.include?('://')
+			# Remove leading slash if given
+			request_path.slice!(0) if request_path.start_with?('/')
 			# URL and requst_path are relative to the same point
 			rel = "../" * request_path.count('/') << url
 			self.tidy_url(rel)

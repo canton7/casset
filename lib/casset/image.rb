@@ -3,6 +3,7 @@ module Casset
 		DEFAULT_OPTIONS = {
 			:namespace => :core,
 			:embed => false,
+			:request_path => nil,
 		}
 
 		@path
@@ -45,7 +46,7 @@ module Casset
 			elsif namespace[:path].include?('://')
 				url = "#{namespace[:path]}#{@path}"
 			else
-				url = "#{options[:url_root]}#{namespace[:path]}#{dir}#{@path}"
+				url = UriRewriter.rewrite_url(options[:request_path], "#{options[:url_root]}#{namespace[:path]}#{dir}#{@path}")
 			end
 			@attr[:src] = url
 			@finalized = true

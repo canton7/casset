@@ -80,6 +80,9 @@ module Sinatra
 			app.helpers Helpers
 			app.before do
 				app.set :casset, CassetConfigurator.create(app.settings.casset_options)
+				unless settings.casset_options.configuration.include?(:request_path)
+					settings.casset.config({:request_path => request.path_info})
+				end
 			end
 			app.set :casset_options, CassetConfig.new
 		end

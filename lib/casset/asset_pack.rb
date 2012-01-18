@@ -99,11 +99,12 @@ module Casset
 				:inline => false,
 				:gen_tags => false,
 			}.merge(options)
-			return options[:inline] ? render_inline(options[:gen_tags]) : render_files(options[:gen_tags])
+			return options[:inline] ? render_inline(options[:gen_tags]) : render_files(options[:gen_tags], options[:request_path])
 		end
 
-		def render_files(gen_tags)
+		def render_files(gen_tags, request_path)
 			filename = (@assets.count == 1 && @assets[0].must_link_to?) ? @assets[0].url : write_file()
+			filename = UriRewriter::rewrite_url(request_path, filename)
 			return gen_tags ? tag(filename) : filename
 		end
 

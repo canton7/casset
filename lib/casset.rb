@@ -42,6 +42,8 @@ module Casset
 			:root => 'public/',
 			# The URL root -- where the namespaces are relative to, as URLs
 			:url_root => '',
+			# The path of the page we're currently on. Can be set by render
+			:request_path => '',
 			# If asset is not combined, will retain old filename
 			:retain_filename => true,
 			:show_filenames_before => false,
@@ -182,6 +184,7 @@ module Casset
 			options = {
 					:gen_tags => true,
 					:inline => false,
+					:request_path => @options[:request_path],
 			}.merge(options)
 
 			finalize() unless @finalized
@@ -189,7 +192,7 @@ module Casset
 
 			# Generate all cache files, if needed, and get an array of generated packs
 			packs = @groups_to_render.inject([]){ |s, group| s.push(*group.generate(type, :inline => options[:inline])) }
-			files = packs.map{ |pack| pack.render(:gen_tags => options[:gen_tags], :inline => options[:inline]) }
+			files = packs.map{ |pack| pack.render(options) }
 			# If returning tags, make them a string from an array
 			files = files.join("\n") if options[:gen_tags]
 			return files
@@ -265,9 +268,11 @@ module Casset
 
 		def image(path, alt='', attr={})
 			attr = {
-				:gen_tag => true
+				:gen_tag => true,
+				:request_path => @options[:request_path],
 			}.merge(attr)
 			gen_tag = attr.delete(:gen_tag)
+
 			path, namespace = path.split('::', 2).reverse
 			attr[:namespace] = (namespace || @options[:default_namespace]).to_sym
 			img = Image.new(path, alt, attr)
