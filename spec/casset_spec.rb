@@ -295,7 +295,12 @@ describe Casset do
 		files[0].should_not == "#{assets_dir}js/test.js"
 		# Shouldn't
 		files[1].should == "#{assets_dir}js/test2.js"
+	end
 
+	it "should allow leading slash in asset path to override dir" do
+		@casset.js('/js/test.js')
+		@casset.js('test2.js')
+		expect{ @casset.render(:js) }.not_to raise_error(Errno::ENOENT)
 	end
 end
 

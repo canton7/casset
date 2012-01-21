@@ -40,8 +40,12 @@ module Casset
 			file_to_use = @min_file && @options[:min] ? @min_file : @file
 			file = file_to_use[:file]
 			namespace = options[:namespaces][file_to_use[:namespace]]
-			# Allow namespace dir to override dir from options
-			if namespace.include?(:dirs) && namespace[:dirs].include?(@type)
+			# Allow namespace dir to override dir from options, and a leading / in the
+			# asset path to override that
+			if file.start_with?('/')
+				dir = ''
+				file.slice!(0) # Get rid of that leading slash
+			elsif namespace.include?(:dirs) && namespace[:dirs].include?(@type)
 				dir = namespace[:dirs][@type]
 			else
 				dir = options[:dirs][@type]
