@@ -1,4 +1,5 @@
 require 'rake'
+require 'rspec/core/rake_task'
 
 spec = eval(File.read(Dir["*.gemspec"].first))
 
@@ -17,3 +18,6 @@ desc "Install gem locally"
 task :install => :build do
   system "gem install #{spec.name}-#{spec.version}"
 end
+
+desc "Run specs"
+RSpec::Core::RakeTask.new(:test)
