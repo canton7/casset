@@ -347,5 +347,16 @@ describe Casset do
 		content[:js].should == '//This is a javascript file'
 		content[:css].should == '/* This is a css file */'
 	end
+
+	it "should produce different hashes for parsed and non-parsed files" do
+		casset2 = Marshal.load(Marshal.dump(@casset))
+		@casset.js('test.js')
+		file1 = @casset.render(:js, :gen_tags => false)[0]
+
+		casset2.add_parser(:js, 'js'){ |content| content << ' parsed' }
+		casset2.js('test.js')
+		file2 = casset2.render(:js, :gen_tags => false)[0]
+		file1.should_not == file2
+	end
 end
 

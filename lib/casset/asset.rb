@@ -96,7 +96,11 @@ module Casset
 		end
 
 		def minify?
-			@options[:min]
+			@options[:min] && @options[:minifier]
+		end
+
+		def parse?
+			@options[:parser]
 		end
 
 		def remote?
