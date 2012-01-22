@@ -358,5 +358,23 @@ describe Casset do
 		file2 = casset2.render(:js, :gen_tags => false)[0]
 		file1.should_not == file2
 	end
+
+	it "should show image sizes when instructed" do
+		tag = @casset.image('test.jpg', 'alt', :size => true)
+		tag.should include('width="2"')
+		tag.should include('height="1"')
+		@casset.config(:show_image_size => true)
+		@casset.image('test.jpg', 'alt').should include("width")
+	end
+
+	it "should not include sizes on images which don't exist" do
+		@casset.config(:show_image_size => true)
+		@casset.image('doesnt_exist.jpg', 'alt').should_not include("width")
+	end
+
+	it "should allow :image to override :show_image_size for images" do
+		@casset.config(:show_image_size => true)
+		@casset.image('test.jpg', 'alt', :size => false).should_not include("width")
+	end
 end
 

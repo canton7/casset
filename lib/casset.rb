@@ -13,6 +13,10 @@ require 'casset/uri_rewriter'
 require 'casset/version'
 
 require 'ostruct'
+begin
+	require 'dimensions'
+rescue LoadError
+end
 
 module Casset
 	class Casset
@@ -52,7 +56,9 @@ module Casset
 			:attr => {
 				:js => nil,
 				:css => nil
-			}
+			},
+			# Show image width and height attributes
+			:show_image_size => false,
 		}
 
 		@groups
