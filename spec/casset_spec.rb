@@ -22,7 +22,7 @@ assets_dir = 'spec/assets/'
 describe Casset do
   before(:each) do
     @casset = Casset::Casset.new
-		@casset.config(:root => assets_dir, :url_root => 'public/', :dirs => {:js => 'js/'}, :url_root => assets_dir)
+		@casset.config(:root => assets_dir, :url_root => assets_dir, :dirs => {:js => 'js/'})
   end
 
 	after(:each) do
@@ -310,6 +310,42 @@ describe Casset do
 	it "should allow leading slash in image path to override dir" do
 		@casset.image('my_image.jpg', :gen_tag => false).should == 'spec/assets/img/my_image.jpg'
 		@casset.image('/my_image.jpg', :gen_tag => false).should == 'spec/assets/my_image.jpg'
+	end
+
+	it "should allow creation of content-based assets" do
+		@casset.js('//This is a javascript file', :content => true)
+		cache_file = @casset.render(:js, :gen_tags => false)[0]
+		File.open(cache_file){ |f| f.read }.should == '//This is a javascript file'
+	end
+
+	it "should allow inline rendering of content-based assets" do
+		@casset.js('//This is a javascript file', :content => true, :inline => true)
+		@casset.render_inline(:js, :gen_tags => false).should == '//This is a javascript file'
+	end
+
+	it "should allow parsed, minified content-based assets" do
+		@casset.config(:min => true)
+		@casset.add_parser(:js, 'ext'){ |content| content << ' parsed'}
+		@casset.set_minifier(:js){ |content| content << ' yay'}
+		@casset.js('//This is a javascript file', :content => true, :inline => true, :type => 'ext')
+		@casset.render_inline(:js, :gen_tags => false).should == '//This is a javascript file parsed yay'
+	end
+
+	it "should combine content-based and file-based assets" do
+		@casset.js('//This is a javascript file', :content => true)
+		@casset.js('test.js')
+		cache_files = @casset.render(:js, :gen_tags => false)
+		cache_files.length.should == 1
+		File.open(cache_files[0]){ |f| f.read }.should == "//This is a javascript file\nalert('This is a test file')"
+	end
+
+	it "should allow js_content and css_content helper methods" do
+		@casset.config(:inline => true)
+		@casset.js_content('//This is a javascript file')
+		@casset.css_content('/* This is a css file */')
+		content = @casset.render_inline(:all, :gen_tags => false)
+		content[:js].should == '//This is a javascript file'
+		content[:css].should == '/* This is a css file */'
 	end
 end
 

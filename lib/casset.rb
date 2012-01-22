@@ -3,6 +3,7 @@ $:.unshift File.dirname(__FILE__)
 
 require 'casset/monkey'
 require 'casset/asset'
+require 'casset/content_asset'
 require 'casset/asset_group'
 require 'casset/asset_pack'
 require 'casset/parser'
@@ -109,18 +110,23 @@ module Casset
 		def add_assets_to_group(type, group, files, options={})
 			# Ensure we've got an array
 			[*files].each do |file|
-				# Get the namespace from the filename.
-				# Don't attempt to resolve it, though. We're too lazy
-				# Reverse ensures that, if no namespace present, nil is set
-				file, namespace = file.split('::', 2).reverse
-				file = {:file => file, :namespace => (namespace || @options[:default_namespace]).to_sym}
-				if options[:min_file]
-					min_file, min_namespace = options.delete(:min_file).split('::', 2).reverse
-					min_file = {:file => min_file, :namespace => (min_namespace || @options[:default_namespace]).to_sym}
+				if options[:content]
+					asset = ContentAsset.new(type, file, options)
 				else
-					min_file = nil
+					# Get the namespace from the filename.
+					# Don't attempt to resolve it, though. We're too lazy
+					# Reverse ensures that, if no namespace present, nil is set
+					file, namespace = file.split('::', 2).reverse
+					file = {:file => file, :namespace => (namespace || @options[:default_namespace]).to_sym}
+					if options[:min_file]
+						min_file, min_namespace = options.delete(:min_file).split('::', 2).reverse
+						min_file = {:file => min_file, :namespace => (min_namespace || @options[:default_namespace]).to_sym}
+					else
+						min_file = nil
+					end
+						asset = Asset.new(type, file, options, min_file)
 				end
-				asset = Asset.new(type, file, options, min_file)
+
 				@groups[group] << asset
 				# If they specified options which aren't acceptable to the file, apply to the group
 				group_options = options.select{ |key| !Asset::DEFAULT_OPTIONS.include?(key) }
@@ -155,6 +161,32 @@ module Casset
 			add_assets(:css, *args)
 		end
 
+		def add_content_assets(type, *args)
+			if args[-1].is_a?(Hash)
+				args[-1][:content] = true
+			else
+				args << {:content => true}
+			end
+			add_assets(type, *args)
+		end
+
+		def js_content(*args)
+			add_content_assets(:js, *args)
+		end
+
+		def css_content(*args)
+			add_content_assets(:css, *args)
+		end
+
+		def js_content(*args)
+			if args[-1].is_a?(Hash)
+				args[-1][:content] = true
+			else
+				args << {:content => true}
+			end
+			add_assets(:js, *args)
+		end
+
 		def finalize
 			# We're good to go. Assume no more config changes, and finalize
 			# Resolve any procs in our config.
@@ -177,9 +209,15 @@ module Casset
 				# Rely on the face that << works on both strings and arrays
 				# and that gen_tags is either set for both (so return array), or none
 				# (so return string)
-				files = render(:js, options)
-				files << render(:css, options)
-				return files
+				js = render(:js, options)
+				css = render(:css, options)
+				# Since we're rendering all assets, if we're not separating js and css by
+				# tags, separate them into a hash instead
+				if options[:gen_tags] == false
+					return {:js => js, :css => css}
+				else
+					return js << css
+				end
 			end
 
 			options = {
@@ -195,7 +233,8 @@ module Casset
 			packs = @groups_to_render.inject([]){ |s, group| s.push(*group.generate(type, :inline => options[:inline])) }
 			files = packs.map{ |pack| pack.render(options) }
 			# If returning tags, make them a string from an array
-			files = files.join("\n") if options[:gen_tags]
+			# Similarly, join inline assets, if they're of the same type
+			files = files.join("\n") if options[:gen_tags] || options[:inline]
 			return files
 		end
 
