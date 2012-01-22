@@ -269,6 +269,8 @@ module Casset
 
 		def image(path, alt='', attr={})
 			@options.resolve_procs!
+			# Allow them not to specify an alt text, but provide attr
+			attr, alt = alt, '' unless alt.is_a?(String)
 			attr = {
 				:gen_tag => true,
 				:request_path => @options[:request_path],

@@ -302,5 +302,14 @@ describe Casset do
 		@casset.js('test2.js')
 		expect{ @casset.render(:js) }.not_to raise_error(Errno::ENOENT)
 	end
+
+	it "should allow images with no alt tag, if :gen_tag is false" do
+		@casset.image('my_image.jpg', :gen_tag => true).should == %Q{<img alt="" src="#{assets_dir}img/my_image.jpg" />}
+	end
+
+	it "should allow leading slash in image path to override dir" do
+		@casset.image('my_image.jpg', :gen_tag => false).should == 'spec/assets/img/my_image.jpg'
+		@casset.image('/my_image.jpg', :gen_tag => false).should == 'spec/assets/my_image.jpg'
+	end
 end
 

@@ -36,7 +36,10 @@ module Casset
 			return if @finalized
 			# We know the namespaces at this point..
 			namespace = options[:namespaces][@options[:namespace]]
-			if namespace.include?(:dirs) && namespace[:dirs].include?(:img)
+			if @path.start_with?('/')
+				@path.slice!(0)
+				dir = ''
+			elsif namespace.include?(:dirs) && namespace[:dirs].include?(:img)
 				dir = namespace[:dirs][:img]
 			else
 				dir = options[:dirs][:img]
