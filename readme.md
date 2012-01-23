@@ -1,10 +1,36 @@
 Casset
 ======
 
-Casset is a new asset management library for Ruby, and will support Sinatra initially.
+Casset is a very powerful, fine-grained, configurable asset-management library for Ruby.
+It features an adapter for Sinatra, which is documented here.
 
-It's a port (with more) of [fuelphp-casset](https://github.com/canton7/fuelphp-casset).  
-Its main feature is advanced asset grouping, and it also suppots parsing (SASS, etc), and minifying.
+Casset boasts:
+ - Very easy control over which assets are displayed on what page.
+ - Combining assets into "packfiles", to reduce the number of network connections.
+ - Minifying assets with the minifier of your choice.
+ - Parsing assets, supporting SASS, CoffeeScript, and anything else you can imagine.
+ - Including assets in external files or inline.
+ - Sourcing assets from external files, or from a string.
+ 
+Installing
+----------
 
-This project is still pre-release work-in-progress, and isn't yet advanced enough for use on a website.
-It will be up to v1.0 soon, though!
+Casset isn't yet published on Rubygems (it will be in a little bit), so choose one of the following:
+
+### gem/rake
+
+```bash
+$ git clone git://github.com/canton7/casset.git
+$ cd casset
+$ sudo rake install
+```
+
+### bundler
+
+Add the following to your `Gemfile`:
+
+```ruby
+gem 'casset', :git => 'git://github.com/canton7/casset.git', :require => 'sinatra/casset'
+```
+
+Then run `bundle install`.
