@@ -11,7 +11,8 @@ module Sinatra
 				def parameter(*names)
 					names.each do |name|
 						define_method name do |*values, &blk|
-							@funcs[name] = {:args => [*values], :block => blk}
+							@funcs[name] = [] unless @funcs.include?(name)
+							@funcs[name] << {:args => [*values], :block => blk}
 						end
 					end
 				end
@@ -53,8 +54,10 @@ module Sinatra
 
 			def config(casset, opts)
 				casset.config(opts[:config])
-				opts[:funcs].each do |key, value|
-					casset.send(key, *value[:args], &value[:block])
+				opts[:funcs].each do |key, values|
+					values.each do |value|
+						casset.send(key, *value[:args], &value[:block])
+					end
 				end
 				casset
 			end
