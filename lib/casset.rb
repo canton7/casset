@@ -36,8 +36,6 @@ module Casset
 				:css => nil,
 			},
 			:parsers => {
-				:js => {},
-				:css => {},
 			},
 			:namespaces => {
 				:core => {:path => ''},
@@ -279,13 +277,10 @@ module Casset
 			@groups[group_name].disable
 		end
 
-		def add_parser(type, *extensions, &blk)
-			raise "Unknown parser type #{type}" unless @options[:parsers].include?(type)
+		def set_parser(*extensions, &blk)
 			parser = Parser.new(*extensions, &blk)
 			parser.extensions.each do |ext|
-				@options[:parsers][type][ext] = [] unless @options[:parsers].include?(ext)
-				# Add onto beginning -- higher priority
-				@options[:parsers][type][ext].unshift parser
+				@options[:parsers][ext] = parser
 			end
 		end
 

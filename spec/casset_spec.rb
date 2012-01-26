@@ -121,7 +121,7 @@ describe Casset do
 
 	it "should accept and use new parsers" do
 		@casset.config(:combine => true, :min => false)
-		@casset.add_parser(:js, 'js'){ |file| "parsed content: #{file}" }
+		@casset.set_parser('js'){ |file| "parsed content: #{file}" }
 		@casset.js 'test.js'
 		cache_file = @casset.render(:js, :gen_tags => false)[0]
 		FileUtils.compare_file(cache_file, "#{assets_dir}results/new_parsers.js").should == true
@@ -325,7 +325,7 @@ describe Casset do
 
 	it "should allow parsed, minified content-based assets" do
 		@casset.config(:min => true)
-		@casset.add_parser(:js, 'ext'){ |content| content << ' parsed'}
+		@casset.set_parser('ext'){ |content| content << ' parsed'}
 		@casset.set_minifier(:js){ |content| content << ' yay'}
 		@casset.js('//This is a javascript file', :content => true, :inline => true, :type => 'ext')
 		@casset.render_inline(:js, :gen_tags => false).should == '//This is a javascript file parsed yay'
@@ -353,7 +353,7 @@ describe Casset do
 		@casset.js('test.js')
 		file1 = @casset.render(:js, :gen_tags => false)[0]
 
-		casset2.add_parser(:js, 'js'){ |content| content << ' parsed' }
+		casset2.set_parser('js'){ |content| content << ' parsed' }
 		casset2.js('test.js')
 		file2 = casset2.render(:js, :gen_tags => false)[0]
 		file1.should_not == file2

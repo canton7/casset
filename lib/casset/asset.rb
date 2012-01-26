@@ -65,8 +65,8 @@ module Casset
 				@path = "#{options[:root]}#{namespace[:path]}#{dir}#{file}"
 				@cache_dir = "#{options[:url_root]}#{options[:cache_dir]}"
 			end
-			if options[:parsers][@type].include?(@extension)
-				@options[:parser] = options[:parsers][@type][@extension][0]
+			if options[:parsers].include?(@extension)
+				@options[:parser] = options[:parsers][@extension]
 			end
 			@options[:minifier] = options[:minifiers][@type]
 			@finalized = true

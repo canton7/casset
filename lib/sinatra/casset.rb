@@ -25,7 +25,7 @@ module Sinatra
 
 			parameter :add_assets, :add_group, :group_options, :add_namespace,
 					:set_default_namespace, :js, :css, :js_content, :css_content,
-					:add_content_assets, :enable, :disable, :add_parser,
+					:add_content_assets, :enable, :disable, :set_parser,
 					:set_minifier, :clear_cache
 
 			def initialize(&blk)
