@@ -165,7 +165,8 @@ module Casset
 			add_assets(:css, *args)
 		end
 
-		def add_content_assets(type, *args)
+		def add_content_assets(type, *args, &block)
+			args.unshift(block.call) if block
 			if args[-1].is_a?(Hash)
 				args[-1][:content] = true
 			else
@@ -174,12 +175,12 @@ module Casset
 			add_assets(type, *args)
 		end
 
-		def js_content(*args)
-			add_content_assets(:js, *args)
+		def js_content(*args, &block)
+			add_content_assets(:js, *args, &block)
 		end
 
-		def css_content(*args)
-			add_content_assets(:css, *args)
+		def css_content(*args, &block)
+			add_content_assets(:css, *args, &block)
 		end
 
 		def finalize

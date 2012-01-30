@@ -343,8 +343,11 @@ describe Casset do
 		@casset.config(:inline => true)
 		@casset.js_content('//This is a javascript file')
 		@casset.css_content('/* This is a css file */')
+		@casset.js_content do
+			"// And more"
+		end
 		content = @casset.render_inline(:all, :gen_tags => false)
-		content[:js].should == '//This is a javascript file'
+		content[:js].should == "//This is a javascript file\n// And more"
 		content[:css].should == '/* This is a css file */'
 	end
 
