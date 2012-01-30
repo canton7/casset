@@ -182,15 +182,6 @@ module Casset
 			add_content_assets(:css, *args)
 		end
 
-		def js_content(*args)
-			if args[-1].is_a?(Hash)
-				args[-1][:content] = true
-			else
-				args << {:content => true}
-			end
-			add_assets(:js, *args)
-		end
-
 		def finalize
 			# We're good to go. Assume no more config changes, and finalize
 			# Resolve any procs in our config.
