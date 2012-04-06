@@ -50,11 +50,9 @@ module Casset
 		end
 
 		def cache_file_name
-			# Get the last modified time of all component files
-			last_mtime = @assets.map{ |asset| asset.mtime }.max
 			filename = Digest::MD5.hexdigest(@assets.inject('') \
-					{ |s, asset| s << asset.path << (asset.minify? ? 'min' : '') << (asset.parse? ? 'parse' : '') } +
-					last_mtime.to_s) + '.' + @type.to_s
+					{ |s, asset| s << asset.path << (asset.minify? ? 'min' : '') << (asset.parse? ? 'parse' : '') << asset.mtime.to_i.to_s }) <<
+					'.' << @type.to_s
 			return filename
 		end
 
