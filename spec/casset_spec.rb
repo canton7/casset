@@ -112,7 +112,7 @@ describe Casset do
 		new_mtime = Time.new(2011, 12, 21, 17, 40, 51)
 		files.each{ |f| File.utime(new_mtime, new_mtime, f) }
 		cache_file = @casset.render(:js, :gen_tags => false)[0]
-		cache_file.should == "#{assets_dir}cache/9c85ee0a70fcf72e8b4daf986c22a3fe.js"
+		cache_file.should == "#{assets_dir}cache/201a4b5f1d09e96ad1ba4b3bb8524893.js"
 		# Check the digest of the file contents
 		FileUtils.compare_file(cache_file, "#{assets_dir}results/combine_no_min.js").should == true
 		# Set back to what they were. Might confuse stuff otherwise
