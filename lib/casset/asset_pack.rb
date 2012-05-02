@@ -6,6 +6,7 @@ module Casset
 			:root => nil,
 			:url_root => nil,
 			:cache_dir => nil,
+			:cache_url_root => nil,
 			:attr => {
 				:js => nil,
 				:css => nil,
@@ -30,11 +31,11 @@ module Casset
 		end
 
 		def write_file
-			cache_dir = @options[:root] + @options[:cache_dir]
-			Dir.mkdir(cache_dir) unless Dir.exist?(cache_dir)
+			cache_dir = @options[:cache_dir]
+			FileUtils.mkdir_p(cache_dir) unless Dir.exist?(cache_dir)
 			cache_file_name = cache_file_name()
 			filename = cache_dir + cache_file_name
-			file_url = @options[:url_root] + @options[:cache_dir] + cache_file_name
+			file_url = @options[:cache_url_root] + cache_file_name
 			# If filename exists, we don't need to generate the cache
 			return file_url if File.exist?(filename)
 			File.open(filename, 'w') do |f|

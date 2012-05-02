@@ -17,6 +17,7 @@ begin
 	require 'dimensions'
 rescue LoadError
 end
+require 'fileutils'
 
 module Casset
 	class Casset
@@ -26,7 +27,6 @@ module Casset
 				:css => 'css/',
 				:img => 'img/',
 			},
-			:cache_dir => 'cache/',
 			:max_dep_depth => 5,
 			:combine => true,
 			:min => true,
@@ -37,14 +37,18 @@ module Casset
 			},
 			:parsers => {
 			},
+			# The file root -- where the namespaces are relative to
+			:root => 'public/',
+			# Where to cache files, relative to nothing
+			:cache_dir => 'public/cache/',
 			:namespaces => {
 				:core => {:path => ''},
 			},
 			:default_namespace => :core,
-			# The file root -- where the namespaces are relative to
-			:root => 'public/',
 			# The URL root -- where the namespaces are relative to, as URLs
 			:url_root => '',
+			# Where the cache files are stored, as a URL
+			:cache_url_root => 'cache/',
 			# The path of the page we're currently on. Can be set by render
 			:request_path => '',
 			# If asset is not combined, will retain old filename
@@ -286,7 +290,7 @@ module Casset
 			options = {
 				:before => nil,
 			}.merge(options)
-			glob = "#{@options[:root]}#{@options[:cache_dir]}*"
+			glob = "#{@options[:cache_dir]}*"
 			glob << ".#{type.to_s}" if type && type != :all
 			Dir.glob(glob).select{ |f| File.file?(f) }.each do |file|
 				# If they've left clear_cache on on a loaded server, we can get races

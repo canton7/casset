@@ -21,6 +21,7 @@ module Casset
 			:root => nil,
 			:url_root => nil,
 			:cache_dir => nil,
+			:cache_url_root => nil,
 		}
 
 		attr_reader :name

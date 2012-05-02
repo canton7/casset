@@ -1,7 +1,9 @@
 require 'casset'
+require 'sinatra/capture'
 
 module Sinatra
 	module Casset
+		include Capture
 
 		module ConfigMethods
 			def self.included(base)
@@ -25,7 +27,7 @@ module Sinatra
 			attr_reader :funcs, :configuration
 
 			parameter :add_assets, :add_group, :group_options, :add_namespace,
-					:set_default_namespace, :js, :css, :js_content, :css_content,
+					:set_default_namespace, :js, :js_content, :css, :css_content,
 					:add_content_assets, :enable, :disable, :set_parser,
 					:set_minifier, :clear_cache
 
@@ -42,6 +44,7 @@ module Sinatra
 			def config(config)
 				@configuration.merge!(config)
 			end
+
 		end
 
 		module CassetConfigurator

@@ -22,7 +22,7 @@ assets_dir = 'spec/assets/'
 describe Casset do
   before(:each) do
     @casset = Casset::Casset.new
-		@casset.config(:root => assets_dir, :url_root => assets_dir, :dirs => {:js => 'js/'})
+		@casset.config(:root => assets_dir, :cache_dir => "#{assets_dir}cache/", :url_root => assets_dir, :cache_url_root => "#{assets_dir}cache/", :dirs => {:js => 'js/'})
   end
 
 	after(:each) do
